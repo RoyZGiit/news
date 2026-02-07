@@ -95,10 +95,10 @@ llm:
 
 publish:
   method: "rsync"
-  remote_host: "your-server.com"
-  remote_user: "deploy"
-  remote_path: "/var/www/ai-news/"
+  remote_host: "news.topolapse.com"
+  remote_user: "chen"
+  remote_path: "/var/www/news.topolapse.com/"
   ssh_key: "~/.ssh/id_rsa"
   site_title: "AI Daily Briefing"
   site_description: "AI 行业每日信息聚合简报"
-  site_url: "https://ai-news.example.com"
+  site_url: "https://news.topolapse.com"
