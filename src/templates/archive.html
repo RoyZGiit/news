@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}归档 - {{ site_title }}{% endblock %}
+
+{% block content %}
+<div class="mb-10">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">📚 简报归档</h1>
+    <p class="text-gray-500 text-lg">浏览所有历史 AI 行业简报</p>
+</div>
+
+<!-- Weekly Briefings -->
+{% if weekly_briefings %}
+<section class="mb-12">
+    <h2 class="text-xl font-bold text-gray-900 mb-4">📅 周报</h2>
+    <div class="space-y-3">
+        {% for briefing in weekly_briefings %}
+        <a href="briefing-{{ briefing.period }}-{{ briefing.date }}.html"
+           class="block bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md hover:border-purple-200 transition-all">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="flex items-center space-x-2 mb-1">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">周报</span>
+                        <span class="text-gray-500 text-sm">{{ briefing.date }}</span>
+                    </div>
+                    <h3 class="text-base font-medium text-gray-900">{{ briefing.title }}</h3>
+                </div>
+                <span class="text-gray-400 text-sm">{{ briefing.article_count }} 条</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Daily Briefings -->
+{% if daily_briefings %}
+<section>
+    <h2 class="text-xl font-bold text-gray-900 mb-4">📋 日报</h2>
+    <div class="space-y-3">
+        {% for briefing in daily_briefings %}
+        <a href="briefing-{{ briefing.period }}-{{ briefing.date }}.html"
+           class="block bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md hover:border-blue-200 transition-all">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="flex items-center space-x-2 mb-1">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">日报</span>
+                        <span class="text-gray-500 text-sm">{{ briefing.date }}</span>
+                    </div>
+                    <h3 class="text-base font-medium text-gray-900">{{ briefing.title }}</h3>
+                </div>
+                <span class="text-gray-400 text-sm">{{ briefing.article_count }} 条</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if not weekly_briefings and not daily_briefings %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+    <p class="text-gray-500 text-lg">暂无简报数据。</p>
+</div>
+{% endif %}
+{% endblock %}

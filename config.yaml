@@ -1,0 +1,104 @@
+scheduler:
+  daily_briefing_time: "08:00"
+  weekly_briefing_day: "monday"
+
+sources:
+  github:
+    enabled: true
+    interval_hours: 6
+    orgs:
+      - "openai"
+      - "anthropics"
+      - "google-deepmind"
+      - "meta-llama"
+      - "deepseek-ai"
+      - "mistralai"
+      - "huggingface"
+    topics:
+      - "large-language-model"
+      - "generative-ai"
+      - "llm"
+
+  huggingface:
+    enabled: true
+    interval_hours: 6
+
+  reddit:
+    enabled: true
+    interval_hours: 4
+    subreddits:
+      - "MachineLearning"
+      - "LocalLLaMA"
+      - "artificial"
+      - "singularity"
+    post_limit: 25
+
+  twitter:
+    enabled: false
+    interval_hours: 4
+    method: "rsshub"  # rsshub or api
+    rsshub_base: "https://rsshub.app"
+    accounts:
+      - "OpenAI"
+      - "AnthropicAI"
+      - "GoogleDeepMind"
+      - "MetaAI"
+      - "deepaboroshke"
+
+  arxiv:
+    enabled: true
+    interval_hours: 12
+    categories:
+      - "cs.AI"
+      - "cs.CL"
+      - "cs.LG"
+    max_results: 30
+    keywords:
+      - "large language model"
+      - "LLM"
+      - "GPT"
+      - "transformer"
+      - "diffusion"
+      - "multimodal"
+      - "reasoning"
+      - "agent"
+
+  leaderboard:
+    enabled: true
+    interval_hours: 24
+
+  websites:
+    enabled: true
+    interval_hours: 6
+    blogs:
+      - name: "OpenAI Blog"
+        url: "https://openai.com/blog"
+        rss: "https://openai.com/blog/rss.xml"
+      - name: "Anthropic News"
+        url: "https://www.anthropic.com/news"
+      - name: "Google AI Blog"
+        url: "https://blog.google/technology/ai/"
+        rss: "https://blog.google/technology/ai/rss/"
+      - name: "Meta AI Blog"
+        url: "https://ai.meta.com/blog/"
+      - name: "DeepSeek"
+        url: "https://www.deepseek.com/"
+
+llm:
+  provider: "openai"
+  model: "gpt-4o-mini"
+  api_base: null
+  temperature: 0.3
+  max_tokens: 4096
+  summarize_model: "gpt-4o-mini"
+  briefing_model: "gpt-4o-mini"
+
+publish:
+  method: "rsync"
+  remote_host: "your-server.com"
+  remote_user: "deploy"
+  remote_path: "/var/www/ai-news/"
+  ssh_key: "~/.ssh/id_rsa"
+  site_title: "AI Daily Briefing"
+  site_description: "AI 行业每日信息聚合简报"
+  site_url: "https://ai-news.example.com"

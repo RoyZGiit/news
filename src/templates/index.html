@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}{{ site_title }} - 首页{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="flex items-center justify-between mb-5">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900">AI 行业信息流</h1>
+        <p class="text-gray-400 text-sm mt-0.5">{{ generated_at }} 更新 · 聚合 {{ latest_articles|length }} 条资讯</p>
+    </div>
+    <div class="flex gap-2">
+        {% if latest_briefing %}
+        <a href="briefing-{{ latest_briefing.period }}-{{ latest_briefing.date }}.html"
+           class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors">
+            📋 {{ latest_briefing.date }} {{ '周报' if latest_briefing.period == 'weekly' else '日报' }}
+        </a>
+        {% endif %}
+        <a href="archive.html"
+           class="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
+            归档
+        </a>
+    </div>
+</div>
+
+<!-- Clickable Source Filter Tabs -->
+{% if source_statuses %}
+<div class="flex gap-2 mb-5 overflow-x-auto pb-1 scrollbar-hide" id="filterBar">
+    <button onclick="filterCards('all')" data-filter="all"
+        class="filter-btn active inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-900 text-white whitespace-nowrap transition-all">
+        全部 <span class="ml-1 opacity-60">{{ latest_articles|length }}</span>
+    </button>
+    {% for s in source_statuses %}
+    {% if s.total_articles and s.total_articles > 0 %}
+    <button onclick="filterCards('{{ s.source_name }}')" data-filter="{{ s.source_name }}"
+        class="filter-btn inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 whitespace-nowrap hover:bg-gray-200 transition-all">
+        {{ s.source_name }} <span class="ml-1 text-gray-400">{{ s.total_articles }}</span>
+    </button>
+    {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if latest_briefing %}
+<!-- Briefing Banner -->
+<a href="briefing-{{ latest_briefing.period }}-{{ latest_briefing.date }}.html"
+   class="block mb-5 bg-gradient-to-r from-primary-600 to-indigo-600 rounded-xl p-4 text-white hover:from-primary-700 hover:to-indigo-700 transition-all">
+    <div class="flex items-center justify-between">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="px-2 py-0.5 bg-white/20 rounded text-xs font-medium">{{ '周报' if latest_briefing.period == 'weekly' else '日报' }}</span>
+                <span class="text-white/80 text-xs">{{ latest_briefing.article_count }} 条资讯</span>
+            </div>
+            <h3 class="font-semibold">{{ latest_briefing.title }}</h3>
+        </div>
+        <span class="text-white/60 text-xl">→</span>
+    </div>
+</a>
+{% endif %}
+
+<!-- Card Grid -->
+{% if latest_articles %}
+<div class="columns-2 md:columns-3 gap-3 space-y-3" id="cardGrid">
+    {% for article in latest_articles %}
+    {% set display_text = article.summary or article.content %}
+    {% set display_title = article.ai_title if article.ai_title else article.title %}
+    {# Strip prefix tag like [Arxiv] [HF Paper] from raw title #}
+    {% if not article.ai_title and display_title.startswith('[') and '] ' in display_title %}
+        {% set display_title = display_title.split('] ', 1)[1] %}
+    {% endif %}
+    <a href="{{ article.url }}" target="_blank" rel="noopener"
+       class="card-item block break-inside-avoid bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+       data-source="{{ article.source }}">
+        {# Color accent bar per source #}
+        <div class="h-1
+            {% if article.source == 'github' %}bg-gray-800
+            {% elif article.source == 'huggingface' %}bg-yellow-400
+            {% elif article.source == 'arxiv' %}bg-red-400
+            {% elif article.source == 'reddit' %}bg-orange-500
+            {% elif article.source == 'websites' %}bg-blue-500
+            {% elif article.source == 'leaderboard' %}bg-purple-500
+            {% elif article.source == 'twitter' %}bg-sky-400
+            {% else %}bg-gray-300{% endif %}"></div>
+        <div class="p-3">
+            {# Source + Time + Score #}
+            <div class="flex items-center justify-between mb-1.5">
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[11px] font-semibold uppercase tracking-wide
+                        {% if article.source == 'github' %}text-gray-700
+                        {% elif article.source == 'huggingface' %}text-yellow-700
+                        {% elif article.source == 'arxiv' %}text-red-600
+                        {% elif article.source == 'reddit' %}text-orange-600
+                        {% elif article.source == 'websites' %}text-blue-600
+                        {% elif article.source == 'leaderboard' %}text-purple-600
+                        {% elif article.source == 'twitter' %}text-sky-600
+                        {% else %}text-gray-500{% endif %}">{{ article.source }}</span>
+                    {% if article.importance_score and article.importance_score >= 4 %}
+                    <span class="px-1 py-0.5 bg-red-50 text-red-500 rounded text-[9px] font-bold">HOT</span>
+                    {% endif %}
+                </div>
+                <span class="text-[10px] text-gray-300">
+                    {% if article.published_at %}{{ article.published_at.strftime('%m-%d') }}{% endif %}
+                </span>
+            </div>
+
+            {# Title — AI-generated or cleaned raw title #}
+            <h3 class="text-[13px] font-semibold text-gray-900 leading-snug mb-1">{{ display_title }}</h3>
+
+            {# Summary / Content #}
+            {% if display_text %}
+            <p class="text-[11px] text-gray-400 leading-relaxed line-clamp-3">{{ display_text[:300] }}</p>
+            {% endif %}
+
+            {# Tags #}
+            {% if article.tags %}
+            <div class="flex flex-wrap gap-1 mt-2">
+                {% for tag in article.tags.split(',')[:3] %}
+                {% if tag.strip() %}
+                <span class="px-1.5 py-0.5 bg-gray-50 text-gray-400 rounded text-[10px]">#{{ tag.strip() }}</span>
+                {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {# Author #}
+            {% if article.author %}
+            <div class="mt-2 pt-1.5 border-t border-gray-50">
+                <span class="text-[10px] text-gray-300 truncate">{{ article.author[:30] }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% elif not latest_briefing %}
+<div class="bg-white rounded-xl border border-gray-200 p-10 text-center">
+    <p class="text-gray-400">暂无数据。系统正在收集信息，请稍后查看。</p>
+</div>
+{% endif %}
+
+<!-- Source Status (compact) -->
+{% if source_statuses %}
+<div class="mt-10 pt-6 border-t border-gray-200">
+    <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-semibold text-gray-500">数据源状态</h3>
+    </div>
+    <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
+        {% for s in source_statuses %}
+        <div class="bg-white rounded-lg border border-gray-100 p-2.5 text-center">
+            <div class="w-2 h-2 rounded-full mx-auto mb-1
+                {% if s.status == 'success' %}bg-green-400
+                {% elif s.status == 'running' %}bg-blue-400
+                {% elif s.status == 'error' %}bg-red-400
+                {% else %}bg-gray-300{% endif %}"></div>
+            <p class="text-xs font-medium text-gray-700">{{ s.source_name }}</p>
+            <p class="text-[10px] text-gray-300">{{ s.total_articles or 0 }}条</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Filter JavaScript -->
+<script>
+function filterCards(source) {
+    const cards = document.querySelectorAll('.card-item');
+    const buttons = document.querySelectorAll('.filter-btn');
+
+    // Update button styles
+    buttons.forEach(btn => {
+        if (btn.dataset.filter === source) {
+            btn.classList.remove('bg-gray-100', 'text-gray-600');
+            btn.classList.add('bg-gray-900', 'text-white', 'active');
+        } else {
+            btn.classList.remove('bg-gray-900', 'text-white', 'active');
+            btn.classList.add('bg-gray-100', 'text-gray-600');
+        }
+    });
+
+    // Filter cards
+    cards.forEach(card => {
+        if (source === 'all' || card.dataset.source === source) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+</script>
+{% endblock %}
