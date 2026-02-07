@@ -16,6 +16,10 @@ logger = logging.getLogger(__name__)
 class GitHubCrawler(BaseCrawler):
     source_name = "github"
 
+    # GitHub API allows 5000 req/hour with token, 60/hour without.
+    # Use 0.5s between requests to stay well within limits.
+    request_delay = 0.5
+
     def __init__(self) -> None:
         super().__init__()
         self.config = get_config().sources.github
@@ -29,13 +33,12 @@ class GitHubCrawler(BaseCrawler):
 
     async def _fetch_trending_repos(self) -> list[Article]:
         """Fetch trending AI-related repositories (created/pushed recently, high stars)."""
-        client = await self.get_client()
         articles = []
         since = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d")
 
         for topic in self.config.topics:
             try:
-                resp = await client.get(
+                resp = await self.throttled_get(
                     "https://api.github.com/search/repositories",
                     params={
                         "q": f"topic:{topic} pushed:>{since}",
@@ -79,13 +82,12 @@ class GitHubCrawler(BaseCrawler):
 
     async def _fetch_org_releases(self) -> list[Article]:
         """Fetch recent releases from tracked AI organizations."""
-        client = await self.get_client()
         articles = []
 
         for org in self.config.orgs:
             try:
                 # Get recent repos from org
-                resp = await client.get(
+                resp = await self.throttled_get(
                     f"https://api.github.com/orgs/{org}/repos",
                     params={"sort": "updated", "per_page": 10},
                     headers=await self._headers(),
@@ -96,7 +98,7 @@ class GitHubCrawler(BaseCrawler):
                 for repo in repos:
                     repo_name = repo["full_name"]
                     try:
-                        rel_resp = await client.get(
+                        rel_resp = await self.throttled_get(
                             f"https://api.github.com/repos/{repo_name}/releases",
                             params={"per_page": 3},
                             headers=await self._headers(),

@@ -1,5 +1,6 @@
 """AI summarization engine: generates headlines, summaries, and importance scores."""
 
+import asyncio
 import json
 import logging
 from typing import Optional
@@ -134,6 +135,9 @@ async def summarize_unsummarized(batch_size: int = 20) -> int:
             except Exception as e:
                 logger.warning(f"Skip summarizing article {article.id}: {e}")
                 session.rollback()
+
+            # Pause between articles to avoid hitting LLM rate limits
+            await asyncio.sleep(1.0)
 
         logger.info(f"Summarized {count}/{len(articles)} articles.")
         return count

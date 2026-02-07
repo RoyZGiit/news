@@ -13,14 +13,16 @@ logger = logging.getLogger(__name__)
 class LeaderboardCrawler(BaseCrawler):
     source_name = "leaderboard"
 
+    # Moderate delay between leaderboard API calls
+    request_delay = 2.0
+
     async def _fetch_lmsys_arena(self) -> list[Article]:
         """Fetch LMSYS Chatbot Arena leaderboard data."""
-        client = await self.get_client()
         articles = []
 
         try:
             # LMSYS publishes leaderboard data via their API
-            resp = await client.get(
+            resp = await self.throttled_get(
                 "https://huggingface.co/api/spaces/lmsys/chatbot-arena-leaderboard",
                 timeout=20.0,
             )
@@ -45,12 +47,11 @@ class LeaderboardCrawler(BaseCrawler):
 
     async def _fetch_open_llm_leaderboard(self) -> list[Article]:
         """Fetch Open LLM Leaderboard from HuggingFace."""
-        client = await self.get_client()
         articles = []
 
         try:
             # Try to get the leaderboard data from the HF API
-            resp = await client.get(
+            resp = await self.throttled_get(
                 "https://huggingface.co/api/spaces/open-llm-leaderboard/open_llm_leaderboard",
                 timeout=20.0,
             )
@@ -75,11 +76,10 @@ class LeaderboardCrawler(BaseCrawler):
 
     async def _fetch_livebench(self) -> list[Article]:
         """Fetch LiveBench leaderboard."""
-        client = await self.get_client()
         articles = []
 
         try:
-            resp = await client.get("https://livebench.ai/", timeout=20.0)
+            resp = await self.throttled_get("https://livebench.ai/", timeout=20.0)
             if resp.status_code == 200:
                 articles.append(
                     Article(

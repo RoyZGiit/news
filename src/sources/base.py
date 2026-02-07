@@ -1,9 +1,11 @@
 """Base crawler abstract class for all data sources."""
 
 import abc
+import asyncio
 import logging
+import time
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Any, Optional
 
 import httpx
 
@@ -18,13 +20,23 @@ logger = logging.getLogger(__name__)
 
 
 class BaseCrawler(abc.ABC):
-    """Abstract base class for all data source crawlers."""
+    """Abstract base class for all data source crawlers.
+
+    Subclasses inherit a rate-limited HTTP helper (`throttled_get`) that
+    enforces a minimum interval between outgoing requests to avoid
+    triggering upstream rate limits.
+    """
 
     # Subclasses must set this
     source_name: str = ""
 
+    # Minimum seconds between consecutive HTTP requests for this crawler.
+    # Subclasses may override to use a tighter or looser limit.
+    request_delay: float = 1.0
+
     def __init__(self) -> None:
         self._client: Optional[httpx.AsyncClient] = None
+        self._last_request_time: float = 0.0
 
     async def get_client(self) -> httpx.AsyncClient:
         """Get or create an async HTTP client."""
@@ -37,6 +49,36 @@ class BaseCrawler(abc.ABC):
                 },
             )
         return self._client
+
+    async def throttled_get(
+        self,
+        url: str,
+        *,
+        params: Optional[dict[str, Any]] = None,
+        headers: Optional[dict[str, str]] = None,
+        timeout: Optional[float] = None,
+    ) -> httpx.Response:
+        """Send a GET request with automatic rate limiting.
+
+        Waits at least ``self.request_delay`` seconds since the previous
+        request before issuing a new one.
+        """
+        now = time.monotonic()
+        elapsed = now - self._last_request_time
+        if elapsed < self.request_delay:
+            wait = self.request_delay - elapsed
+            logger.debug(
+                f"[{self.source_name}] rate limiter: sleeping {wait:.2f}s"
+            )
+            await asyncio.sleep(wait)
+
+        client = await self.get_client()
+        kwargs: dict[str, Any] = {"params": params, "headers": headers}
+        if timeout is not None:
+            kwargs["timeout"] = timeout
+
+        self._last_request_time = time.monotonic()
+        return await client.get(url, **kwargs)
 
     async def close(self) -> None:
         """Close the HTTP client."""

@@ -19,17 +19,19 @@ logger = logging.getLogger(__name__)
 class WebsiteCrawler(BaseCrawler):
     source_name = "websites"
 
+    # Be polite to blog servers — 2s between requests
+    request_delay = 2.0
+
     def __init__(self) -> None:
         super().__init__()
         self.config = get_config().sources.websites
 
     async def _fetch_via_rss(self, blog_name: str, rss_url: str) -> list[Article]:
         """Fetch blog posts via RSS feed."""
-        client = await self.get_client()
         articles = []
 
         try:
-            resp = await client.get(rss_url, timeout=15.0)
+            resp = await self.throttled_get(rss_url, timeout=15.0)
             resp.raise_for_status()
             feed = feedparser.parse(resp.text)
 
@@ -71,11 +73,10 @@ class WebsiteCrawler(BaseCrawler):
 
     async def _fetch_via_html(self, blog_name: str, url: str) -> list[Article]:
         """Fetch blog posts by scraping the HTML page for article links."""
-        client = await self.get_client()
         articles = []
 
         try:
-            resp = await client.get(url, timeout=15.0)
+            resp = await self.throttled_get(url, timeout=15.0)
             resp.raise_for_status()
             soup = BeautifulSoup(resp.text, "html.parser")
 

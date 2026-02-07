@@ -18,16 +18,18 @@ class HuggingFaceCrawler(BaseCrawler):
         super().__init__()
         self.token = os.getenv("HF_TOKEN")
 
+    # 1.5s between HuggingFace API calls
+    request_delay = 1.5
+
     async def _fetch_trending_models(self) -> list[Article]:
         """Fetch trending models from HuggingFace API."""
-        client = await self.get_client()
         articles = []
         headers = {}
         if self.token:
             headers["Authorization"] = f"Bearer {self.token}"
 
         try:
-            resp = await client.get(
+            resp = await self.throttled_get(
                 "https://huggingface.co/api/models",
                 params={
                     "sort": "likes",
@@ -71,11 +73,10 @@ class HuggingFaceCrawler(BaseCrawler):
 
     async def _fetch_trending_papers(self) -> list[Article]:
         """Fetch trending papers from HuggingFace daily papers."""
-        client = await self.get_client()
         articles = []
 
         try:
-            resp = await client.get("https://huggingface.co/api/daily_papers")
+            resp = await self.throttled_get("https://huggingface.co/api/daily_papers")
             resp.raise_for_status()
             papers = resp.json()
 
@@ -121,11 +122,10 @@ class HuggingFaceCrawler(BaseCrawler):
 
     async def _fetch_trending_spaces(self) -> list[Article]:
         """Fetch trending Spaces from HuggingFace."""
-        client = await self.get_client()
         articles = []
 
         try:
-            resp = await client.get(
+            resp = await self.throttled_get(
                 "https://huggingface.co/api/spaces",
                 params={"sort": "likes", "direction": -1, "limit": 10},
             )

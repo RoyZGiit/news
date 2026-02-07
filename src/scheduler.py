@@ -3,6 +3,7 @@
 import asyncio
 import logging
 
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
@@ -73,7 +74,7 @@ async def run_weekly_briefing() -> None:
 
 
 async def run_all_crawlers() -> None:
-    """Run all enabled crawlers sequentially."""
+    """Run all enabled crawlers sequentially with pauses in between."""
     config = get_config().sources
 
     crawlers: list[tuple[str, type, bool]] = [
@@ -86,9 +87,15 @@ async def run_all_crawlers() -> None:
         ("websites", WebsiteCrawler, config.websites.enabled),
     ]
 
+    ran_any = False
     for name, cls, enabled in crawlers:
         if enabled:
+            # Pause between crawlers to spread out requests
+            if ran_any:
+                logger.debug("[scheduler] Pausing 5s between crawlers...")
+                await asyncio.sleep(5.0)
             await run_crawler(cls)
+            ran_any = True
         else:
             logger.debug(f"[scheduler] Skipping disabled source: {name}")
 

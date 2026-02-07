@@ -15,6 +15,9 @@ logger = logging.getLogger(__name__)
 class TwitterCrawler(BaseCrawler):
     source_name = "twitter"
 
+    # 2s between RSSHub requests
+    request_delay = 2.0
+
     def __init__(self) -> None:
         super().__init__()
         self.config = get_config().sources.twitter
@@ -25,14 +28,13 @@ class TwitterCrawler(BaseCrawler):
             logger.warning("[twitter] Only rsshub method is currently supported.")
             return []
 
-        client = await self.get_client()
         articles = []
         base = self.config.rsshub_base.rstrip("/")
 
         for account in self.config.accounts:
             try:
                 rss_url = f"{base}/twitter/user/{account}"
-                resp = await client.get(rss_url, timeout=15.0)
+                resp = await self.throttled_get(rss_url, timeout=15.0)
                 resp.raise_for_status()
 
                 feed = feedparser.parse(resp.text)

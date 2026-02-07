@@ -1,5 +1,6 @@
 """Briefing generator: aggregates articles and generates daily/weekly briefings."""
 
+import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional
@@ -151,6 +152,9 @@ async def generate_daily_briefing(
             max_tokens=4096,
         )
 
+        # Pause before the English call to avoid rate limits
+        await asyncio.sleep(3.0)
+
         # --- Generate English briefing ---
         articles_text_en = _format_articles_for_prompt(articles, lang="en")
         prompt_en = BRIEFING_USER_TEMPLATE_EN.format(
@@ -251,6 +255,9 @@ async def generate_weekly_briefing(
             temperature=0.3,
             max_tokens=8000,
         )
+
+        # Pause before the English call to avoid rate limits
+        await asyncio.sleep(3.0)
 
         # --- Generate English briefing ---
         articles_text_en = _format_articles_for_prompt(articles, lang="en")
