@@ -4,14 +4,14 @@
 
 {% block content %}
 <div class="mb-10">
-    <h1 class="text-3xl font-bold text-gray-900 mb-2">📚 简报归档</h1>
-    <p class="text-gray-500 text-lg">浏览所有历史 AI 行业简报</p>
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">📚 <span data-i18n="archive.title">简报归档</span></h1>
+    <p class="text-gray-500 text-lg" data-i18n="archive.subtitle">浏览所有历史 AI 行业简报</p>
 </div>
 
 <!-- Weekly Briefings -->
 {% if weekly_briefings %}
 <section class="mb-12">
-    <h2 class="text-xl font-bold text-gray-900 mb-4">📅 周报</h2>
+    <h2 class="text-xl font-bold text-gray-900 mb-4">📅 <span data-i18n="archive.weekly">周报</span></h2>
     <div class="space-y-3">
         {% for briefing in weekly_briefings %}
         <a href="briefing-{{ briefing.period }}-{{ briefing.date }}.html"
@@ -19,12 +19,12 @@
             <div class="flex items-center justify-between">
                 <div>
                     <div class="flex items-center space-x-2 mb-1">
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">周报</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700" data-i18n="archive.weeklyBadge">周报</span>
                         <span class="text-gray-500 text-sm">{{ briefing.date }}</span>
                     </div>
                     <h3 class="text-base font-medium text-gray-900">{{ briefing.title }}</h3>
                 </div>
-                <span class="text-gray-400 text-sm">{{ briefing.article_count }} 条</span>
+                <span class="text-gray-400 text-sm" data-i18n="archive.count" data-i18n-count="{{ briefing.article_count }}">{{ briefing.article_count }} 条</span>
             </div>
         </a>
         {% endfor %}
@@ -35,7 +35,7 @@
 <!-- Daily Briefings -->
 {% if daily_briefings %}
 <section>
-    <h2 class="text-xl font-bold text-gray-900 mb-4">📋 日报</h2>
+    <h2 class="text-xl font-bold text-gray-900 mb-4">📋 <span data-i18n="archive.daily">日报</span></h2>
     <div class="space-y-3">
         {% for briefing in daily_briefings %}
         <a href="briefing-{{ briefing.period }}-{{ briefing.date }}.html"
@@ -43,12 +43,12 @@
             <div class="flex items-center justify-between">
                 <div>
                     <div class="flex items-center space-x-2 mb-1">
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">日报</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700" data-i18n="archive.dailyBadge">日报</span>
                         <span class="text-gray-500 text-sm">{{ briefing.date }}</span>
                     </div>
                     <h3 class="text-base font-medium text-gray-900">{{ briefing.title }}</h3>
                 </div>
-                <span class="text-gray-400 text-sm">{{ briefing.article_count }} 条</span>
+                <span class="text-gray-400 text-sm" data-i18n="archive.count" data-i18n-count="{{ briefing.article_count }}">{{ briefing.article_count }} 条</span>
             </div>
         </a>
         {% endfor %}
@@ -58,7 +58,7 @@
 
 {% if not weekly_briefings and not daily_briefings %}
 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-    <p class="text-gray-500 text-lg">暂无简报数据。</p>
+    <p class="text-gray-500 text-lg" data-i18n="archive.noData">暂无简报数据。</p>
 </div>
 {% endif %}
 {% endblock %}

@@ -5,9 +5,9 @@
 {% block content %}
 <!-- Breadcrumb -->
 <nav class="mb-6 text-sm text-gray-500">
-    <a href="index.html" class="hover:text-primary-600">首页</a>
+    <a href="index.html" class="hover:text-primary-600" data-i18n="nav.home">首页</a>
     <span class="mx-2">›</span>
-    <a href="archive.html" class="hover:text-primary-600">归档</a>
+    <a href="archive.html" class="hover:text-primary-600" data-i18n="nav.archive">归档</a>
     <span class="mx-2">›</span>
     <span class="text-gray-900">{{ briefing.date }}</span>
 </nav>
@@ -16,14 +16,15 @@
 <div class="mb-8">
     <div class="flex items-center space-x-3 mb-3">
         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-            {% if briefing.period == 'weekly' %}bg-purple-100 text-purple-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+            {% if briefing.period == 'weekly' %}bg-purple-100 text-purple-700{% else %}bg-blue-100 text-blue-700{% endif %}"
+            data-i18n="{{ 'briefing.weekly' if briefing.period == 'weekly' else 'briefing.daily' }}">
             {{ '📅 周报' if briefing.period == 'weekly' else '📋 日报' }}
         </span>
         <span class="text-gray-500">{{ briefing.date }}</span>
-        <span class="text-gray-400">· {{ briefing.article_count }} 条资讯</span>
+        <span class="text-gray-400" data-i18n="briefing.articles" data-i18n-count="{{ briefing.article_count }}">· {{ briefing.article_count }} 条资讯</span>
     </div>
     <h1 class="text-3xl font-bold text-gray-900">{{ briefing.title }}</h1>
-    <p class="text-gray-400 text-sm mt-2">生成时间: {{ briefing.created_at.strftime('%Y-%m-%d %H:%M UTC') if briefing.created_at else '' }}</p>
+    <p class="text-gray-400 text-sm mt-2" data-i18n="briefing.generatedAt" data-i18n-time="{{ briefing.created_at.strftime('%Y-%m-%d %H:%M UTC') if briefing.created_at else '' }}">生成时间: {{ briefing.created_at.strftime('%Y-%m-%d %H:%M UTC') if briefing.created_at else '' }}</p>
 </div>
 
 <!-- Briefing Content -->
@@ -35,7 +36,7 @@
 
 <!-- Navigation -->
 <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
-    <a href="archive.html" class="text-primary-600 hover:text-primary-700 font-medium">← 查看所有简报</a>
-    <a href="index.html" class="text-primary-600 hover:text-primary-700 font-medium">回到首页 →</a>
+    <a href="archive.html" class="text-primary-600 hover:text-primary-700 font-medium" data-i18n="briefing.viewAll">← 查看所有简报</a>
+    <a href="index.html" class="text-primary-600 hover:text-primary-700 font-medium" data-i18n="briefing.backHome">回到首页 →</a>
 </div>
 {% endblock %}

@@ -6,18 +6,19 @@
 <!-- Header -->
 <div class="flex items-center justify-between mb-5">
     <div>
-        <h1 class="text-2xl font-bold text-gray-900">AI 行业信息流</h1>
-        <p class="text-gray-400 text-sm mt-0.5">{{ generated_at }} 更新 · 聚合 {{ latest_articles|length }} 条资讯</p>
+        <h1 class="text-2xl font-bold text-gray-900" data-i18n="index.title">AI 行业信息流</h1>
+        <p class="text-gray-400 text-sm mt-0.5" data-i18n="index.updated" data-i18n-time="{{ generated_at }}" data-i18n-count="{{ latest_articles|length }}">{{ generated_at }} 更新 · 聚合 {{ latest_articles|length }} 条资讯</p>
     </div>
     <div class="flex gap-2">
         {% if latest_briefing %}
         <a href="briefing-{{ latest_briefing.period }}-{{ latest_briefing.date }}.html"
            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors">
-            📋 {{ latest_briefing.date }} {{ '周报' if latest_briefing.period == 'weekly' else '日报' }}
+            📋 {{ latest_briefing.date }} <span data-i18n="{{ 'index.weekly' if latest_briefing.period == 'weekly' else 'index.daily' }}">{{ '周报' if latest_briefing.period == 'weekly' else '日报' }}</span>
         </a>
         {% endif %}
         <a href="archive.html"
-           class="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
+           class="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+           data-i18n="index.archive">
             归档
         </a>
     </div>
@@ -28,7 +29,7 @@
 <div class="flex gap-2 mb-5 overflow-x-auto pb-1 scrollbar-hide" id="filterBar">
     <button onclick="filterCards('all')" data-filter="all"
         class="filter-btn active inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-900 text-white whitespace-nowrap transition-all">
-        全部 <span class="ml-1 opacity-60">{{ latest_articles|length }}</span>
+        <span data-i18n="index.all">全部</span> <span class="ml-1 opacity-60">{{ latest_articles|length }}</span>
     </button>
     {% for s in source_statuses %}
     {% if s.total_articles and s.total_articles > 0 %}
@@ -48,8 +49,8 @@
     <div class="flex items-center justify-between">
         <div>
             <div class="flex items-center gap-2 mb-1">
-                <span class="px-2 py-0.5 bg-white/20 rounded text-xs font-medium">{{ '周报' if latest_briefing.period == 'weekly' else '日报' }}</span>
-                <span class="text-white/80 text-xs">{{ latest_briefing.article_count }} 条资讯</span>
+                <span class="px-2 py-0.5 bg-white/20 rounded text-xs font-medium" data-i18n="{{ 'index.weekly' if latest_briefing.period == 'weekly' else 'index.daily' }}">{{ '周报' if latest_briefing.period == 'weekly' else '日报' }}</span>
+                <span class="text-white/80 text-xs" data-i18n="index.briefingArticles" data-i18n-count="{{ latest_briefing.article_count }}">{{ latest_briefing.article_count }} 条资讯</span>
             </div>
             <h3 class="font-semibold">{{ latest_briefing.title }}</h3>
         </div>
@@ -134,7 +135,7 @@
 </div>
 {% elif not latest_briefing %}
 <div class="bg-white rounded-xl border border-gray-200 p-10 text-center">
-    <p class="text-gray-400">暂无数据。系统正在收集信息，请稍后查看。</p>
+    <p class="text-gray-400" data-i18n="index.noData">暂无数据。系统正在收集信息，请稍后查看。</p>
 </div>
 {% endif %}
 
@@ -142,7 +143,7 @@
 {% if source_statuses %}
 <div class="mt-10 pt-6 border-t border-gray-200">
     <div class="flex items-center justify-between mb-3">
-        <h3 class="text-sm font-semibold text-gray-500">数据源状态</h3>
+        <h3 class="text-sm font-semibold text-gray-500" data-i18n="index.sourceStatus">数据源状态</h3>
     </div>
     <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
         {% for s in source_statuses %}
@@ -153,7 +154,7 @@
                 {% elif s.status == 'error' %}bg-red-400
                 {% else %}bg-gray-300{% endif %}"></div>
             <p class="text-xs font-medium text-gray-700">{{ s.source_name }}</p>
-            <p class="text-[10px] text-gray-300">{{ s.total_articles or 0 }}条</p>
+            <p class="text-[10px] text-gray-300" data-i18n="index.articleCount" data-i18n-count="{{ s.total_articles or 0 }}">{{ s.total_articles or 0 }}条</p>
         </div>
         {% endfor %}
     </div>
