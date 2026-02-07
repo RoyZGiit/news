@@ -95,8 +95,8 @@ llm:
 
 publish:
   method: "rsync"
-  remote_host: "news.topolapse.com"
-  remote_user: "chen"
+  remote_host: "167.99.31.52"
+  remote_user: "root"
   remote_path: "/var/www/news.topolapse.com/"
   ssh_key: "~/.ssh/id_rsa"
   site_title: "AI Daily Briefing"
