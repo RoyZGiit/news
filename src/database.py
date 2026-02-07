@@ -36,9 +36,11 @@ class Article(Base):
     source_id = Column(String(255), nullable=True)  # unique ID within the source
     title = Column(String(500), nullable=False)
     ai_title = Column(String(500), nullable=True)  # AI-generated Chinese headline
+    ai_title_en = Column(String(500), nullable=True)  # AI-generated English headline
     url = Column(String(1000), nullable=True)
     content = Column(Text, nullable=True)  # raw content / description
-    summary = Column(Text, nullable=True)  # AI-generated summary
+    summary = Column(Text, nullable=True)  # AI-generated summary (Chinese)
+    summary_en = Column(Text, nullable=True)  # AI-generated summary (English)
     category = Column(String(100), nullable=True)  # model_release, paper, news, ...
     importance_score = Column(Float, nullable=True)  # 1-5 AI-rated importance
     author = Column(String(255), nullable=True)
@@ -60,7 +62,9 @@ class Briefing(Base):
     date = Column(String(10), nullable=False, index=True)  # YYYY-MM-DD
     period = Column(String(10), nullable=False)  # daily / weekly
     title = Column(String(500), nullable=False)
+    title_en = Column(String(500), nullable=True)  # English title
     content_markdown = Column(Text, nullable=False)
+    content_markdown_en = Column(Text, nullable=True)  # English briefing content
     content_html = Column(Text, nullable=True)
     article_count = Column(Integer, default=0)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
@@ -106,14 +110,27 @@ def _run_migrations() -> None:
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    # Get existing columns for articles table
+    # --- Articles table migrations ---
     cursor.execute("PRAGMA table_info(articles)")
-    existing_cols = {row[1] for row in cursor.fetchall()}
+    article_cols = {row[1] for row in cursor.fetchall()}
 
-    if "ai_title" not in existing_cols:
+    if "ai_title" not in article_cols:
         cursor.execute("ALTER TABLE articles ADD COLUMN ai_title VARCHAR(500)")
-        conn.commit()
+    if "ai_title_en" not in article_cols:
+        cursor.execute("ALTER TABLE articles ADD COLUMN ai_title_en VARCHAR(500)")
+    if "summary_en" not in article_cols:
+        cursor.execute("ALTER TABLE articles ADD COLUMN summary_en TEXT")
 
+    # --- Briefings table migrations ---
+    cursor.execute("PRAGMA table_info(briefings)")
+    briefing_cols = {row[1] for row in cursor.fetchall()}
+
+    if "title_en" not in briefing_cols:
+        cursor.execute("ALTER TABLE briefings ADD COLUMN title_en VARCHAR(500)")
+    if "content_markdown_en" not in briefing_cols:
+        cursor.execute("ALTER TABLE briefings ADD COLUMN content_markdown_en TEXT")
+
+    conn.commit()
     conn.close()
 
 

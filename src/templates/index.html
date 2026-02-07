@@ -52,7 +52,7 @@
                 <span class="px-2 py-0.5 bg-white/20 rounded text-xs font-medium" data-i18n="{{ 'index.weekly' if latest_briefing.period == 'weekly' else 'index.daily' }}">{{ '周报' if latest_briefing.period == 'weekly' else '日报' }}</span>
                 <span class="text-white/80 text-xs" data-i18n="index.briefingArticles" data-i18n-count="{{ latest_briefing.article_count }}">{{ latest_briefing.article_count }} 条资讯</span>
             </div>
-            <h3 class="font-semibold">{{ latest_briefing.title }}</h3>
+            <h3 class="font-semibold" data-lang-zh="{{ latest_briefing.title }}" data-lang-en="{{ latest_briefing.title_en or latest_briefing.title }}">{{ latest_briefing.title }}</h3>
         </div>
         <span class="text-white/60 text-xl">→</span>
     </div>
@@ -64,10 +64,15 @@
 <div class="columns-2 md:columns-3 gap-3 space-y-3" id="cardGrid">
     {% for article in latest_articles %}
     {% set display_text = article.summary or article.content %}
+    {% set display_text_en = article.summary_en or article.content %}
     {% set display_title = article.ai_title if article.ai_title else article.title %}
+    {% set display_title_en = article.ai_title_en if article.ai_title_en else article.title %}
     {# Strip prefix tag like [Arxiv] [HF Paper] from raw title #}
     {% if not article.ai_title and display_title.startswith('[') and '] ' in display_title %}
         {% set display_title = display_title.split('] ', 1)[1] %}
+    {% endif %}
+    {% if not article.ai_title_en and display_title_en.startswith('[') and '] ' in display_title_en %}
+        {% set display_title_en = display_title_en.split('] ', 1)[1] %}
     {% endif %}
     <a href="{{ article.url }}" target="_blank" rel="noopener"
        class="card-item block break-inside-avoid bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
@@ -104,12 +109,16 @@
                 </span>
             </div>
 
-            {# Title — AI-generated or cleaned raw title #}
-            <h3 class="text-[13px] font-semibold text-gray-900 leading-snug mb-1">{{ display_title }}</h3>
+            {# Title — AI-generated or cleaned raw title (bilingual) #}
+            <h3 class="text-[13px] font-semibold text-gray-900 leading-snug mb-1"
+                data-lang-zh="{{ display_title }}"
+                data-lang-en="{{ display_title_en }}">{{ display_title }}</h3>
 
-            {# Summary / Content #}
+            {# Summary / Content (bilingual) #}
             {% if display_text %}
-            <p class="text-[11px] text-gray-400 leading-relaxed line-clamp-3">{{ display_text[:300] }}</p>
+            <p class="text-[11px] text-gray-400 leading-relaxed line-clamp-3"
+               data-lang-zh="{{ display_text[:300] }}"
+               data-lang-en="{{ (display_text_en or display_text)[:300] }}">{{ display_text[:300] }}</p>
             {% endif %}
 
             {# Tags #}

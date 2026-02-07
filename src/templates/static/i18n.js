@@ -124,7 +124,7 @@
     // Update html lang attribute
     document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
 
-    // Update all translatable elements
+    // 1. Update static UI text (data-i18n keys)
     var elements = document.querySelectorAll('[data-i18n]');
     for (var i = 0; i < elements.length; i++) {
       var el = elements[i];
@@ -132,6 +132,24 @@
       var params = getParams(el);
       var hasParams = Object.keys(params).length > 0;
       el.textContent = t(key, hasParams ? params : null);
+    }
+
+    // 2. Update bilingual dynamic content (data-lang-zh / data-lang-en)
+    var bilingualEls = document.querySelectorAll('[data-lang-zh]');
+    for (var j = 0; j < bilingualEls.length; j++) {
+      var bel = bilingualEls[j];
+      if (lang === 'en' && bel.dataset.langEn) {
+        bel.textContent = bel.dataset.langEn;
+      } else {
+        bel.textContent = bel.dataset.langZh;
+      }
+    }
+
+    // 3. Toggle bilingual content blocks (data-lang-content="zh"|"en")
+    var contentBlocks = document.querySelectorAll('[data-lang-content]');
+    for (var k = 0; k < contentBlocks.length; k++) {
+      var block = contentBlocks[k];
+      block.style.display = block.dataset.langContent === lang ? '' : 'none';
     }
 
     // Update language switcher button

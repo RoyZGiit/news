@@ -30,26 +30,63 @@ BRIEFING_SYSTEM_PROMPT = """你是一位资深AI行业分析师，负责编写�
 
 请生成一篇专业、信息密度高、易于阅读的AI行业简报。"""
 
+BRIEFING_SYSTEM_PROMPT_EN = """You are a senior AI industry analyst responsible for writing AI industry briefings.
+
+Requirements:
+1. Write in English
+2. Organize content by the following categories:
+   - 🔥 Key Highlights (major releases, breakthroughs)
+   - 📝 Notable Papers (papers worth following)
+   - 🛠️ Open Source (trending new projects, major version updates)
+   - 💬 Community Buzz (hot discussions on Reddit, Twitter)
+   - 📊 Leaderboard Changes (benchmark shifts, new records)
+   - 📰 Industry News (vendor blog updates, industry developments)
+3. Each item should include: title, brief summary (1-2 sentences), source link
+4. Skip categories that have no content
+5. Start with a summary paragraph (3-5 sentences) highlighting the most important developments
+6. Use Markdown format
+
+Generate a professional, information-dense, and easy-to-read AI industry briefing."""
+
 BRIEFING_USER_TEMPLATE = """以下是过去{period}收集到的AI行业重要资讯（按重要性排序）：
 
 {articles_text}
 
 请基于以上资讯，生成一篇{period_name}简报。日期：{date}"""
 
+BRIEFING_USER_TEMPLATE_EN = """Below are important AI industry updates collected over the past {period} (sorted by importance):
 
-def _format_articles_for_prompt(articles: list[Article]) -> str:
-    """Format articles into text for the LLM prompt."""
+{articles_text}
+
+Based on the above, generate a {period_name} briefing. Date: {date}"""
+
+
+def _format_articles_for_prompt(articles: list[Article], lang: str = "zh") -> str:
+    """Format articles into text for the LLM prompt.
+
+    Args:
+        articles: List of articles to format.
+        lang: Language variant — 'zh' for Chinese, 'en' for English.
+    """
     lines = []
     for i, art in enumerate(articles, 1):
-        summary = art.summary or art.content or ""
+        if lang == "en":
+            summary = art.summary_en or art.summary or art.content or ""
+            title = art.ai_title_en or art.title
+        else:
+            summary = art.summary or art.content or ""
+            title = art.ai_title or art.title
         if len(summary) > 200:
             summary = summary[:200] + "..."
         score = art.importance_score or 3.0
+        summary_label = "Summary" if lang == "en" else "摘要"
+        link_label = "Link" if lang == "en" else "链接"
+        importance_label = "Importance" if lang == "en" else "重要性"
         lines.append(
-            f"{i}. [{art.source}] {art.title}\n"
-            f"   摘要: {summary}\n"
-            f"   链接: {art.url}\n"
-            f"   重要性: {score}/5"
+            f"{i}. [{art.source}] {title}\n"
+            f"   {summary_label}: {summary}\n"
+            f"   {link_label}: {art.url}\n"
+            f"   {importance_label}: {score}/5"
         )
     return "\n\n".join(lines)
 
@@ -94,10 +131,11 @@ async def generate_daily_briefing(
             logger.warning(f"No articles found for daily briefing on {date_str}.")
             return None
 
-        articles_text = _format_articles_for_prompt(articles)
-        prompt = BRIEFING_USER_TEMPLATE.format(
+        # --- Generate Chinese briefing ---
+        articles_text_zh = _format_articles_for_prompt(articles, lang="zh")
+        prompt_zh = BRIEFING_USER_TEMPLATE.format(
             period="24小时",
-            articles_text=articles_text,
+            articles_text=articles_text_zh,
             period_name="每日",
             date=date_str,
         )
@@ -106,8 +144,26 @@ async def generate_daily_briefing(
             f"Generating daily briefing for {date_str} with {len(articles)} articles..."
         )
         content_md = await call_llm(
-            prompt=prompt,
+            prompt=prompt_zh,
             system_prompt=BRIEFING_SYSTEM_PROMPT,
+            model=config.briefing_model,
+            temperature=0.3,
+            max_tokens=4096,
+        )
+
+        # --- Generate English briefing ---
+        articles_text_en = _format_articles_for_prompt(articles, lang="en")
+        prompt_en = BRIEFING_USER_TEMPLATE_EN.format(
+            period="24 hours",
+            articles_text=articles_text_en,
+            period_name="daily",
+            date=date_str,
+        )
+
+        logger.info(f"Generating English daily briefing for {date_str}...")
+        content_md_en = await call_llm(
+            prompt=prompt_en,
+            system_prompt=BRIEFING_SYSTEM_PROMPT_EN,
             model=config.briefing_model,
             temperature=0.3,
             max_tokens=4096,
@@ -117,7 +173,9 @@ async def generate_daily_briefing(
             date=date_str,
             period="daily",
             title=f"AI 行业日报 - {date_str}",
+            title_en=f"AI Daily Briefing - {date_str}",
             content_markdown=content_md,
+            content_markdown_en=content_md_en,
             article_count=len(articles),
             created_at=datetime.now(timezone.utc),
         )
@@ -174,10 +232,11 @@ async def generate_weekly_briefing(
             logger.warning(f"No articles found for weekly briefing on {date_str}.")
             return None
 
-        articles_text = _format_articles_for_prompt(articles)
-        prompt = BRIEFING_USER_TEMPLATE.format(
+        # --- Generate Chinese briefing ---
+        articles_text_zh = _format_articles_for_prompt(articles, lang="zh")
+        prompt_zh = BRIEFING_USER_TEMPLATE.format(
             period="一周",
-            articles_text=articles_text,
+            articles_text=articles_text_zh,
             period_name="每周",
             date=date_str,
         )
@@ -186,8 +245,26 @@ async def generate_weekly_briefing(
             f"Generating weekly briefing for {date_str} with {len(articles)} articles..."
         )
         content_md = await call_llm(
-            prompt=prompt,
+            prompt=prompt_zh,
             system_prompt=BRIEFING_SYSTEM_PROMPT,
+            model=config.briefing_model,
+            temperature=0.3,
+            max_tokens=8000,
+        )
+
+        # --- Generate English briefing ---
+        articles_text_en = _format_articles_for_prompt(articles, lang="en")
+        prompt_en = BRIEFING_USER_TEMPLATE_EN.format(
+            period="one week",
+            articles_text=articles_text_en,
+            period_name="weekly",
+            date=date_str,
+        )
+
+        logger.info(f"Generating English weekly briefing for {date_str}...")
+        content_md_en = await call_llm(
+            prompt=prompt_en,
+            system_prompt=BRIEFING_SYSTEM_PROMPT_EN,
             model=config.briefing_model,
             temperature=0.3,
             max_tokens=8000,
@@ -197,7 +274,9 @@ async def generate_weekly_briefing(
             date=date_str,
             period="weekly",
             title=f"AI 行业周报 - {date_str}",
+            title_en=f"AI Weekly Briefing - {date_str}",
             content_markdown=content_md,
+            content_markdown_en=content_md_en,
             article_count=len(articles),
             created_at=datetime.now(timezone.utc),
         )

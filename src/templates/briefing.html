@@ -23,15 +23,22 @@
         <span class="text-gray-500">{{ briefing.date }}</span>
         <span class="text-gray-400" data-i18n="briefing.articles" data-i18n-count="{{ briefing.article_count }}">· {{ briefing.article_count }} 条资讯</span>
     </div>
-    <h1 class="text-3xl font-bold text-gray-900">{{ briefing.title }}</h1>
+    <h1 class="text-3xl font-bold text-gray-900"
+        data-lang-zh="{{ briefing.title }}"
+        data-lang-en="{{ briefing.title_en or briefing.title }}">{{ briefing.title }}</h1>
     <p class="text-gray-400 text-sm mt-2" data-i18n="briefing.generatedAt" data-i18n-time="{{ briefing.created_at.strftime('%Y-%m-%d %H:%M UTC') if briefing.created_at else '' }}">生成时间: {{ briefing.created_at.strftime('%Y-%m-%d %H:%M UTC') if briefing.created_at else '' }}</p>
 </div>
 
-<!-- Briefing Content -->
+<!-- Briefing Content (bilingual) -->
 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-10">
-    <div class="prose prose-gray max-w-none briefing-content">
+    <div class="prose prose-gray max-w-none briefing-content" data-lang-content="zh">
         {{ briefing_html | safe }}
     </div>
+    {% if briefing_html_en %}
+    <div class="prose prose-gray max-w-none briefing-content" data-lang-content="en" style="display:none">
+        {{ briefing_html_en | safe }}
+    </div>
+    {% endif %}
 </div>
 
 <!-- Navigation -->

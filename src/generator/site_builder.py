@@ -112,10 +112,14 @@ def build_site() -> None:
         briefing_template = env.get_template("briefing.html")
         for briefing in briefings:
             briefing_html_content = _md_to_html(briefing.content_markdown)
+            briefing_html_content_en = ""
+            if briefing.content_markdown_en:
+                briefing_html_content_en = _md_to_html(briefing.content_markdown_en)
             page_html = briefing_template.render(
                 **site_ctx,
                 briefing=briefing,
                 briefing_html=briefing_html_content,
+                briefing_html_en=briefing_html_content_en,
             )
             filename = f"briefing-{briefing.period}-{briefing.date}.html"
             (SITE_DIR / filename).write_text(page_html, encoding="utf-8")

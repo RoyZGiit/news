@@ -22,7 +22,7 @@
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700" data-i18n="archive.weeklyBadge">周报</span>
                         <span class="text-gray-500 text-sm">{{ briefing.date }}</span>
                     </div>
-                    <h3 class="text-base font-medium text-gray-900">{{ briefing.title }}</h3>
+                    <h3 class="text-base font-medium text-gray-900" data-lang-zh="{{ briefing.title }}" data-lang-en="{{ briefing.title_en or briefing.title }}">{{ briefing.title }}</h3>
                 </div>
                 <span class="text-gray-400 text-sm" data-i18n="archive.count" data-i18n-count="{{ briefing.article_count }}">{{ briefing.article_count }} 条</span>
             </div>
@@ -46,7 +46,7 @@
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700" data-i18n="archive.dailyBadge">日报</span>
                         <span class="text-gray-500 text-sm">{{ briefing.date }}</span>
                     </div>
-                    <h3 class="text-base font-medium text-gray-900">{{ briefing.title }}</h3>
+                    <h3 class="text-base font-medium text-gray-900" data-lang-zh="{{ briefing.title }}" data-lang-en="{{ briefing.title_en or briefing.title }}">{{ briefing.title }}</h3>
                 </div>
                 <span class="text-gray-400 text-sm" data-i18n="archive.count" data-i18n-count="{{ briefing.article_count }}">{{ briefing.article_count }} 条</span>
             </div>
