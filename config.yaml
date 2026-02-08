@@ -36,16 +36,8 @@ sources:
   twitter:
     enabled: true
     interval_hours: 4
-    method: "rsshub"  # rsshub or api
-    rsshub_base: "https://rsshub.app"
-    accounts:
-      - "OpenAI"
-      - "AnthropicAI"
-      - "GoogleDeepMind"
-      - "ylecun"
-      - "AndrewYNg"
-      - "deepseek_ai"
-      - "miurahr"
+    method: "nitter"  # nitter or rsshub
+    nitter_base: "https://nitter.net"
       - "MetaAI"
       - "deepaboroshke"
 
