@@ -34,7 +34,7 @@ sources:
     post_limit: 25
 
   twitter:
-    enabled: false
+    enabled: true
     interval_hours: 4
     method: "rsshub"  # rsshub or api
     rsshub_base: "https://rsshub.app"
@@ -42,6 +42,10 @@ sources:
       - "OpenAI"
       - "AnthropicAI"
       - "GoogleDeepMind"
+      - "ylecun"
+      - "AndrewYNg"
+      - "deepseek_ai"
+      - "miurahr"
       - "MetaAI"
       - "deepaboroshke"
 
