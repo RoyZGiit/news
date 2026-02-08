@@ -49,6 +49,7 @@ class Article(Base):
     published_at = Column(DateTime, nullable=True)
     fetched_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     ignored = Column(Integer, default=0)  # 0 = not judged/selected, 1 = judged as not important
+    summarized = Column(Integer, default=0)  # 0 = not summarized, 1 = summarized
 
     def __repr__(self) -> str:
         return f"<Article(id={self.id}, source={self.source}, title={self.title[:40]})>"
