@@ -155,13 +155,15 @@ def push() -> None:
 
 @cli.command()
 def pipeline() -> None:
-    """Run the full pipeline: crawl -> summarize -> briefing -> build -> push."""
+    """Run the full pipeline: crawl -> judge -> summarize -> briefing -> build -> push."""
     from src.scheduler import run_all_crawlers
+    from src.ai.judgment import filter_articles
     from src.ai.summarizer import summarize_unsummarized
     from src.ai.briefing import generate_daily_briefing
     from src.generator.markdown_gen import save_briefing_markdown
     from src.generator.site_builder import build_site
     from src.publisher.rsync_push import push_to_remote
+    from src.database import Article, get_session
 
     logger = logging.getLogger(__name__)
 
@@ -169,18 +171,41 @@ def pipeline() -> None:
         logger.info("=== Step 1/5: Crawling ===")
         await run_all_crawlers()
 
-        logger.info("=== Step 2/5: Summarizing ===")
+        logger.info("=== Step 2/5: Filtering by importance ===")
+        session = get_session()
+        try:
+            articles = session.query(Article).filter(
+                Article.summarized == False
+            ).all()
+            if articles:
+                # Get user's judgment criteria
+                config = get_config()
+                filtered = await filter_articles(
+                    articles,
+                    max_high=config.judgment.max_high_priority if hasattr(config, 'judgment') else 10,
+                    max_medium=config.judgment.max_medium_priority if hasattr(config, 'judgment') else 10,
+                )
+                # Mark non-selected articles as ignored
+                selected_ids = {a.id for a in filtered}
+                for article in articles:
+                    if article.id not in selected_ids:
+                        article.ignored = True
+                session.commit()
+        finally:
+            session.close()
+
+        logger.info("=== Step 3/5: Summarizing ===")
         await summarize_unsummarized(batch_size=20)  # Reduced to avoid rate limits
 
-        logger.info("=== Step 3/5: Generating briefing ===")
+        logger.info("=== Step 4/5: Generating briefing ===")
         result = await generate_daily_briefing()
         if result:
             save_briefing_markdown(result)
 
-        logger.info("=== Step 4/5: Building site ===")
+        logger.info("=== Step 5/5: Building site ===")
         build_site()
 
-        logger.info("=== Step 5/5: Pushing to remote ===")
+        logger.info("=== Step 6/6: Pushing to remote ===")
         push_to_remote()
 
         logger.info("=== Pipeline complete ===")

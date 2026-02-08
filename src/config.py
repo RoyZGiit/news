@@ -119,11 +119,18 @@ class PublishConfig(BaseModel):
     site_url: str = "https://ai-news.example.com"
 
 
+class JudgmentConfig(BaseModel):
+    enabled: bool = True
+    max_high_priority: int = 10
+    max_medium_priority: int = 10
+
+
 class AppConfig(BaseModel):
     scheduler: SchedulerConfig = SchedulerConfig()
     sources: SourcesConfig = SourcesConfig()
     llm: LLMConfig = LLMConfig()
     publish: PublishConfig = PublishConfig()
+    judgment: JudgmentConfig = JudgmentConfig()
 
 
 def load_config(config_path: Optional[str] = None) -> AppConfig:
