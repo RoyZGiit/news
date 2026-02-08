@@ -43,6 +43,7 @@ class HuggingFaceSourceConfig(BaseModel):
 class RedditSourceConfig(BaseModel):
     enabled: bool = True
     interval_hours: int = 4
+    method: str = "rss"  # rss or praw
     subreddits: list[str] = ["MachineLearning", "LocalLLaMA"]
     post_limit: int = 25
 

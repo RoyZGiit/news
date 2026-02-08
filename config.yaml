@@ -25,7 +25,7 @@ sources:
 
   reddit:
     enabled: true
-    interval_hours: 4
+    method: "rss"  # Use RSS (no auth required)
     subreddits:
       - "MachineLearning"
       - "LocalLLaMA"
@@ -34,10 +34,14 @@ sources:
     post_limit: 25
 
   twitter:
-    enabled: true
+    enabled: false
     interval_hours: 4
-    method: "nitter"  # nitter or rsshub
-    nitter_base: "https://nitter.net"
+    method: "rsshub"  # rsshub or api
+    rsshub_base: "https://rsshub.app"
+    accounts:
+      - "OpenAI"
+      - "AnthropicAI"
+      - "GoogleDeepMind"
       - "MetaAI"
       - "deepaboroshke"
 
