@@ -69,6 +69,12 @@ class LeaderboardSourceConfig(BaseModel):
     interval_hours: int = 24
 
 
+class HackerNewsSourceConfig(BaseModel):
+    enabled: bool = True
+    interval_hours: int = 4
+    post_limit: int = 20  # Number of top stories to fetch
+
+
 class BlogEntry(BaseModel):
     name: str
     url: str
@@ -88,6 +94,7 @@ class SourcesConfig(BaseModel):
     twitter: TwitterSourceConfig = TwitterSourceConfig()
     arxiv: ArxivSourceConfig = ArxivSourceConfig()
     leaderboard: LeaderboardSourceConfig = LeaderboardSourceConfig()
+    hackernews: HackerNewsSourceConfig = HackerNewsSourceConfig()
     websites: WebsiteSourceConfig = WebsiteSourceConfig()
 
 

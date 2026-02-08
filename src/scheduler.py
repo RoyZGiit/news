@@ -15,6 +15,7 @@ from src.sources.reddit_source import RedditCrawler
 from src.sources.twitter_source import TwitterCrawler
 from src.sources.arxiv_source import ArxivCrawler
 from src.sources.leaderboard_source import LeaderboardCrawler
+from src.sources.hackernews_source import HackerNewsCrawler
 from src.sources.website_source import WebsiteCrawler
 from src.ai.summarizer import summarize_unsummarized
 from src.ai.briefing import generate_daily_briefing, generate_weekly_briefing
@@ -82,6 +83,7 @@ async def run_all_crawlers() -> None:
         ("huggingface", HuggingFaceCrawler, config.huggingface.enabled),
         ("reddit", RedditCrawler, config.reddit.enabled),
         ("twitter", TwitterCrawler, config.twitter.enabled),
+        ("hackernews", HackerNewsCrawler, config.hackernews.enabled),
         ("arxiv", ArxivCrawler, config.arxiv.enabled),
         ("leaderboard", LeaderboardCrawler, config.leaderboard.enabled),
         ("websites", WebsiteCrawler, config.websites.enabled),
@@ -145,6 +147,15 @@ def create_scheduler() -> AsyncIOScheduler:
             args=[TwitterCrawler],
             id="crawl_twitter",
             name="Twitter Crawler",
+        )
+
+    if sources.hackernews.enabled:
+        scheduler.add_job(
+            run_crawler,
+            IntervalTrigger(hours=sources.hackernews.interval_hours),
+            args=[HackerNewsCrawler],
+            id="crawl_hackernews",
+            name="Hacker News Crawler",
         )
 
     if sources.arxiv.enabled:

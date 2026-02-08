@@ -67,6 +67,11 @@ sources:
     enabled: true
     interval_hours: 24
 
+  hackernews:
+    enabled: true
+    interval_hours: 4
+    post_limit: 20
+
   websites:
     enabled: true
     interval_hours: 6
