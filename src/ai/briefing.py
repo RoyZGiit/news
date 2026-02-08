@@ -185,6 +185,9 @@ async def generate_daily_briefing(
         )
         session.add(briefing)
         session.commit()
+        
+        # Refresh to load all attributes before session closes
+        session.refresh(briefing)
 
         logger.info(f"Daily briefing generated for {date_str}.")
         return briefing
@@ -289,6 +292,9 @@ async def generate_weekly_briefing(
         )
         session.add(briefing)
         session.commit()
+        
+        # Refresh to load all attributes before session closes
+        session.refresh(briefing)
 
         logger.info(f"Weekly briefing generated for {date_str}.")
         return briefing
