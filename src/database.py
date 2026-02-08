@@ -48,6 +48,7 @@ class Article(Base):
     extra_data = Column(Text, nullable=True)  # JSON string for source-specific data
     published_at = Column(DateTime, nullable=True)
     fetched_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    ignored = Column(Integer, default=0)  # 0 = not judged/selected, 1 = judged as not important
 
     def __repr__(self) -> str:
         return f"<Article(id={self.id}, source={self.source}, title={self.title[:40]})>"

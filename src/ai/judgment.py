@@ -51,7 +51,7 @@ class JudgmentResult(BaseModel):
 
 async def judge_article(article: Article, llm_provider: str = "openai") -> JudgmentResult:
     """Judge if an article is important using LLM."""
-    from src.llm import call_llm
+    from src.ai.llm_client import call_llm
 
     content = f"""
 Title: {article.title}
@@ -64,9 +64,8 @@ Tags: {article.tags}
     try:
         response = await call_llm(
             model="gpt-4o-mini",
-            system=JUDGMENT_SYSTEM_PROMPT,
-            user=content,
-            json_mode=True,
+            prompt=content,
+            system_prompt=JUDGMENT_SYSTEM_PROMPT,
         )
 
         # Parse JSON response
