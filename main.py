@@ -170,7 +170,7 @@ def pipeline() -> None:
         await run_all_crawlers()
 
         logger.info("=== Step 2/5: Summarizing ===")
-        await summarize_unsummarized(batch_size=50)
+        await summarize_unsummarized(batch_size=20)  # Reduced to avoid rate limits
 
         logger.info("=== Step 3/5: Generating briefing ===")
         result = await generate_daily_briefing()

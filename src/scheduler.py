@@ -35,7 +35,7 @@ async def run_crawler(crawler_class: type) -> None:
 async def run_summarization() -> None:
     """Run AI summarization on unsummarized articles."""
     logger.info("Running summarization task...")
-    count = await summarize_unsummarized(batch_size=30)
+    count = await summarize_unsummarized(batch_size=20)
     logger.info(f"Summarization complete: {count} articles processed.")
 
 
