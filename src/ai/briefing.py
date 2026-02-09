@@ -115,14 +115,14 @@ async def generate_daily_briefing(
             logger.info(f"Daily briefing for {date_str} already exists, skipping.")
             return existing
 
-        # Fetch articles from the last 24 hours with importance >= 4 (skip ignored)
+        # Fetch articles from the last 24 hours that passed judgment (skip ignored)
         since = target_date - timedelta(hours=24)
         stmt = (
             select(Article)
             .where(
                 Article.fetched_at >= since,
                 Article.ignored != 1,  # Skip ignored articles
-                Article.importance_score >= 3.5,  # Only highly important articles
+                Article.ai_title.isnot(None),  # Must have passed judgment
             )
             .order_by(Article.importance_score.desc().nullslast())
             .limit(20)
@@ -223,14 +223,14 @@ async def generate_weekly_briefing(
             logger.info(f"Weekly briefing for {date_str} already exists, skipping.")
             return existing
 
-        # Fetch top articles from the last 7 days (skip ignored)
+        # Fetch articles from the last 7 days that passed judgment (skip ignored)
         since = target_date - timedelta(days=7)
         stmt = (
             select(Article)
             .where(
                 Article.fetched_at >= since,
                 Article.ignored != 1,  # Skip ignored articles
-                Article.importance_score >= 4.0,  # Only highly important articles
+                Article.ai_title.isnot(None),  # Must have passed judgment
             )
             .order_by(Article.importance_score.desc().nullslast())
             .limit(30)
