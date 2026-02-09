@@ -122,6 +122,8 @@ def _run_migrations() -> None:
         cursor.execute("ALTER TABLE articles ADD COLUMN ai_title_en VARCHAR(500)")
     if "summary_en" not in article_cols:
         cursor.execute("ALTER TABLE articles ADD COLUMN summary_en TEXT")
+    if "summarized" not in article_cols:
+        cursor.execute("ALTER TABLE articles ADD COLUMN summarized INTEGER DEFAULT 0")
 
     # --- Briefings table migrations ---
     cursor.execute("PRAGMA table_info(briefings)")
