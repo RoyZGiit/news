@@ -57,8 +57,8 @@
                 
                 <!-- Meta -->
                 <div class="flex items-center gap-3 text-xs text-gray-400">
-                    {% if article.published_at %}
-                    <span>{{ article.published_at.strftime('%Y-%m-%d') }}</span>
+                    {% if article.fetched_at %}
+                    <span>{{ article.fetched_at.strftime('%Y-%m-%d') }}</span>
                     {% endif %}
                     {% if article.importance_score and article.importance_score >= 4 %}
                     <span class="text-red-500 font-medium">HOT</span>
