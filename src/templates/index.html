@@ -59,9 +59,9 @@
 </a>
 {% endif %}
 
-<!-- Card Grid -->
+<!-- Card Grid - Masonry Layout -->
 {% if latest_articles %}
-<div class="columns-2 md:columns-3 gap-3 space-y-3" id="cardGrid">
+<div class="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4" id="cardGrid">
     {% for article in latest_articles %}
     {% set display_text = article.summary or article.content %}
     {% set display_text_en = article.summary_en or article.content %}
@@ -75,7 +75,7 @@
         {% set display_title_en = display_title_en.split('] ', 1)[1] %}
     {% endif %}
     <a href="{{ article.url }}" target="_blank" rel="noopener"
-       class="card-item block break-inside-avoid bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+       class="card-item block break-inside-avoid bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300"
        data-source="{{ article.source }}">
         {# Color accent bar per source #}
         <div class="h-1
@@ -87,38 +87,36 @@
             {% elif article.source == 'leaderboard' %}bg-purple-500
             {% elif article.source == 'twitter' %}bg-sky-400
             {% else %}bg-gray-300{% endif %}"></div>
-        <div class="p-3">
+        <div class="p-4">
             {# Source + Time + Score #}
-            <div class="flex items-center justify-between mb-1.5">
-                <div class="flex items-center gap-1.5">
-                    <span class="text-[11px] font-semibold uppercase tracking-wide
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold uppercase tracking-wide
                         {% if article.source == 'github' %}text-gray-700
                         {% elif article.source == 'huggingface' %}text-yellow-700
-                        {% elif article.source == 'arxiv' %}text-red-600
-                        {% elif article.source == 'reddit' %}text-orange-600
                         {% elif article.source == 'websites' %}text-blue-600
                         {% elif article.source == 'leaderboard' %}text-purple-600
-                        {% elif article.source == 'twitter' %}text-sky-600
+                        {% elif article.source == 'hackernews' %}text-orange-600
                         {% else %}text-gray-500{% endif %}">{{ article.source }}</span>
                     {% if article.importance_score and article.importance_score >= 4 %}
-                    <span class="px-1 py-0.5 bg-red-50 text-red-500 rounded text-[9px] font-bold">HOT</span>
+                    <span class="px-1.5 py-0.5 bg-red-50 text-red-500 rounded text-[10px] font-bold">HOT</span>
                     {% endif %}
                 </div>
-                <span class="text-[10px] text-gray-300">
+                <span class="text-[10px] text-gray-400">
                     {% if article.published_at %}{{ article.published_at.strftime('%m-%d') }}{% endif %}
                 </span>
             </div>
 
             {# Title — AI-generated or cleaned raw title (bilingual) #}
-            <h3 class="text-[13px] font-semibold text-gray-900 leading-snug mb-1"
+            <h3 class="text-sm font-semibold text-gray-900 leading-snug mb-2"
                 data-lang-zh="{{ display_title }}"
                 data-lang-en="{{ display_title_en }}">{{ display_title }}</h3>
 
             {# Summary / Content (bilingual) #}
             {% if display_text %}
-            <p class="text-[11px] text-gray-400 leading-relaxed line-clamp-3"
-               data-lang-zh="{{ display_text[:300] }}"
-               data-lang-en="{{ (display_text_en or display_text)[:300] }}">{{ display_text[:300] }}</p>
+            <p class="text-xs text-gray-500 leading-relaxed line-clamp-4"
+               data-lang-zh="{{ display_text[:400] }}"
+               data-lang-en="{{ (display_text_en or display_text)[:400] }}">{{ display_text[:400] }}</p>
             {% endif %}
 
             {# Tags #}
