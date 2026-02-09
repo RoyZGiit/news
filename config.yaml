@@ -24,8 +24,8 @@ sources:
     interval_hours: 6
 
   reddit:
-    enabled: true
-    method: "rss"  # Use RSS (no auth required)
+    enabled: false  # Disabled: too noisy, low quality
+    method: "rss"
     subreddits:
       - "MachineLearning"
       - "LocalLLaMA"
@@ -36,7 +36,7 @@ sources:
   twitter:
     enabled: false
     interval_hours: 4
-    method: "rsshub"  # rsshub or api
+    method: "rsshub"
     rsshub_base: "https://rsshub.app"
     accounts:
       - "OpenAI"
@@ -46,7 +46,7 @@ sources:
       - "deepaboroshke"
 
   arxiv:
-    enabled: true
+    enabled: false  # Disabled: too academic, not suitable for daily news
     interval_hours: 12
     categories:
       - "cs.AI"
@@ -76,6 +76,7 @@ sources:
     enabled: true
     interval_hours: 6
     blogs:
+      # Official AI Labs
       - name: "OpenAI Blog"
         url: "https://openai.com/blog"
         rss: "https://openai.com/blog/rss.xml"
@@ -88,6 +89,24 @@ sources:
         url: "https://ai.meta.com/blog/"
       - name: "DeepSeek"
         url: "https://www.deepseek.com/"
+      - name: "Mistral AI"
+        url: "https://mistral.ai/news/"
+      # Tech Media
+      - name: "TechCrunch AI"
+        url: "https://techcrunch.com/category/artificial-intelligence/"
+        rss: "https://techcrunch.com/category/artificial-intelligence/feed/"
+      - name: "The Verge AI"
+        url: "https://www.theverge.com/ai-artificial-intelligence"
+      - name: "Wired AI"
+        url: "https://www.wired.com/tag/artificial-intelligence/"
+      - name: "VentureBeat AI"
+        url: "https://venturebeat.com/category/ai/"
+        rss: "https://venturebeat.com/category/ai/feed/"
+      # AI Newsletters/Sites
+      - name: "MIT Technology Review AI"
+        url: "https://www.technologyreview.com/topic/artificial-intelligence"
+      - name: "Simon Willison"
+        url: "https://simonwillison.net/"
 
 llm:
   provider: "openai"
