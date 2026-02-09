@@ -1,117 +1,90 @@
-"""LLM-based importance judgment for news articles."""
+"""Fast batch importance judgment by title only."""
 
 import json
 import logging
-from typing import Optional
 
-from pydantic import BaseModel
 from src.config import get_config
-from src.database import Article
 
 logger = logging.getLogger(__name__)
 
-# Your judgment criteria - modify as your preferences evolve
-JUDGMENT_SYSTEM_PROMPT = """You are an expert AI news curator. Your task is to evaluate whether an article is IMPORTANT for a professional AI/LLM researcher or engineer.
+JUDGMENT_PROMPT = """你是一位专业的AI研究员。请从以下标题中筛选出 **重要** 的AI/LLM相关资讯。
 
-## IMPORTANT if the article is about:
-1. **Major model releases** - New capabilities, architecture, training techniques
-2. **Research breakthroughs** - Novel approaches, SOTA improvements, fundamental insights
-3. **Industry shifts** - Company strategies, funding, partnerships, market changes
-4. **Practical tutorials** - actionable guides for production AI systems
-5. **Open source projects** - with real utility (not random demos)
-6. **Benchmark results** - meaningful performance comparisons
+标题列表：
+{titles}
 
-## NOT important (exclude):
-- Show HN / Product Hunt launches without substance
-- Minor updates / bug fixes
-- Random personal projects
-- Non-AI tech news
-- Meta-discussions about AI (e.g., "I tried ChatGPT and...")
-- Recruitments / job posts
-- Opinion pieces without technical depth
+判断标准：
+- 重要：主要模型发布、研究突破、行业动态、实用教程、重要基准
+- 不重要：个人项目、Show HN、招聘、非AI内容、Meta讨论
 
-## Output format:
-Return ONLY a JSON object with:
-- "important": boolean (true/false)
-- "reason": brief reason for your decision
-- "priority": "high" | "medium" | "low" (only if important)
-
-## Examples:
-{"important": true, "reason": "DeepSeek released a new reasoning model with 10x efficiency", "priority": "high"}
-{"important": false, "reason": "Show HN: I built a chat UI for local LLMs"}
-{"important": true, "reason": "Anthropic's analysis of LLM scaling laws", "priority": "medium"}
+输出格式（JSON数组）：
+[
+  {"index": 0, "important": true, "reason": "原因"},
+  {"index": 1, "important": false, "reason": "原因"}
+]
 """
 
 
-class JudgmentResult(BaseModel):
-    important: bool
-    reason: str
-    priority: Optional[str] = None
-
-
-async def judge_article(article: Article, llm_provider: str = "openai") -> JudgmentResult:
-    """Judge if an article is important using LLM."""
+async def batch_judge_titles(articles: list) -> list:
+    """Batch judge articles by title only (fast)."""
     from src.ai.llm_client import call_llm
 
-    content = f"""
-Title: {article.title}
-URL: {article.url}
-Source: {article.source}
-Content: {article.content[:500]}...
-Tags: {article.tags}
-"""
+    if not articles:
+        return []
+
+    # Build title list
+    titles = "\n".join([f'{i}. {a.title[:150]}' for i, a in enumerate(articles)])
+    prompt = JUDGMENT_PROMPT.format(titles=titles)
 
     try:
         response = await call_llm(
             model="gpt-4o-mini",
-            prompt=content,
-            system_prompt=JUDGMENT_SYSTEM_PROMPT,
+            prompt=prompt,
         )
 
         # Parse JSON response
-        data = json.loads(response)
-        return JudgmentResult(
-            important=data.get("important", False),
-            reason=data.get("reason", ""),
-            priority=data.get("priority"),
-        )
+        results = json.loads(response)
+        return results
+
     except Exception as e:
-        logger.warning(f"[judgment] Failed to judge article: {e}")
-        # Default to important on error (fail-safe)
-        return JudgmentResult(important=True, reason="Error in judgment, defaulting to include")
+        logger.warning(f"[judgment] Batch judgment failed: {e}")
+        # Default all to important on error
+        return [{"index": i, "important": True, "reason": "Error, default to include"} for i in range(len(articles))]
 
 
-async def filter_articles(
-    articles: list[Article], max_high: int = 10, max_medium: int = 10
-) -> list[Article]:
-    """Filter articles based on LLM judgment."""
+async def filter_articles(articles: list, max_high: int = 10, max_medium: int = 10) -> list:
+    """Fast filter articles by title only."""
+    if not articles:
+        return []
+
+    logger.info(f"[judgment] Batch judging {len(articles)} articles by title...")
+
+    results = await batch_judge_titles(articles)
+
     high_priority = []
     medium_priority = []
 
-    for article in articles:
-        result = await judge_article(article)
+    for result in results:
+        idx = result.get("index", 0)
+        if idx >= len(articles):
+            continue
 
-        if result.important:
-            if result.priority == "high":
-                high_priority.append((article, result))
-            elif result.priority == "medium":
-                medium_priority.append((article, result))
+        article = articles[idx]
+        if result.get("important", False):
+            priority = result.get("priority", "medium")
+            if priority == "high":
+                high_priority.append(article)
             else:
-                medium_priority.append((article, result))
+                medium_priority.append(article)
+        else:
+            article.ignored = True
+            logger.info(f"[judgment] ❌ {article.title[:50]}... | {result.get('reason', '')}")
 
-        # Log all decisions
-        logger.info(
-            f"[judgment] {article.source}: {'✅' if result.important else '❌'} {article.title[:50]}... | {result.reason}"
-        )
+    # Sort by published_at if available
+    high_priority.sort(key=lambda x: x.published_at or x.fetched_at, reverse=True)
+    medium_priority.sort(key=lambda x: x.published_at or x.fetched_at, reverse=True)
 
-    # Sort by score/time if available
-    high_priority.sort(key=lambda x: x[0].published_at or x[0].fetched_at, reverse=True)
-    medium_priority.sort(key=lambda x: x[0].published_at or x[0].fetched_at, reverse=True)
-
-    # Cap the results
-    selected = [a for a, _ in high_priority[:max_high]]
-    selected.extend([a for a, _ in medium_priority[:max_medium]])
-
+    # Cap results
+    selected = high_priority[:max_high] + medium_priority[:max_medium]
     logger.info(f"[judgment] Selected {len(selected)}/{len(articles)} articles")
 
     return selected
