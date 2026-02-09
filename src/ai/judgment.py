@@ -5,22 +5,29 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-PROMPT = """你是AI资讯编辑。请处理以下今日资讯标题：
+PROMPT = """你是严格的AI资讯编辑。请筛选真正重要的AI/LLM新闻。
 
-{articles}
+【重要标准】- 只保留以下：
+1. **重大发布**：OpenAI/Anthropic/Google/Meta/DeepSeek 等头部厂商的新模型发布
+2. **突破性研究**：有实际技术创新的论文（不是增量改进）
+3. **行业大事件**：融资、收购、政策、重要合作
+4. **实用工具**：真正广泛使用的开源项目重大更新
 
-任务：
-1. 判断每条是否重要（AI/LLM相关的研究、模型发布、行业动态）
-2. 翻译标题为中文（简洁准确）
-3. 输出JSON数组：
+【严格过滤】- 以下全部标记为不重要：
+- arXiv论文（除非是顶级会议/实验室的突破性工作）
+- 个人项目、Show HN、小众工具
+- 常规代码更新、Bug修复、版本小迭代
+- 非AI内容（即使来自AI相关subreddit）
+- 招聘、Meta讨论、意见观点
+
+请判断以下标题，只输出JSON：
 
 [
-  {{"index": 0, "important": true, "title_zh": "中文标题", "summary": "一句话摘要（可选）"}},
+  {{"index": 0, "important": false, "reason": "原因"}},
   ...
 ]
 
-只输出JSON，不要其他内容。
-"""
+只输出JSON。"""
 
 
 async def process_articles(articles: list) -> list:
@@ -67,15 +74,16 @@ async def process_articles(articles: list) -> list:
             article = articles[idx]
             
             if r.get("important", False):
-                # Update article with Chinese title
-                article.ai_title = r.get("title_zh", article.title)
+                # Keep article - will be summarized later
                 selected.append(article)
-                logger.info(f"[✓] {article.title[:50]} → {article.ai_title[:30]}")
+                reason = r.get("reason", "")
+                logger.info(f"[✓] {article.title[:50]} | {reason}")
             else:
                 # Mark as ignored and summarized (skip further processing)
                 article.ignored = 1
                 article.summarized = 1
-                logger.info(f"[✗] {article.title[:50]} (not important)")
+                reason = r.get("reason", "")
+                logger.info(f"[✗] {article.title[:50]} | {reason}")
 
         logger.info(f"Selected {len(selected)}/{len(articles)} articles")
         return selected

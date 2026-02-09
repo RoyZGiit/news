@@ -54,19 +54,24 @@ def build_site() -> None:
         stmt = select(Briefing).order_by(Briefing.date.desc())
         briefings = session.execute(stmt).scalars().all()
 
-        # Fetch latest articles for the index page — balanced mix from all sources
-        # Get recent articles from each source to ensure diversity
+        # Fetch latest articles for the index page — only articles that passed judgment
         all_latest = []
         source_names = (
             session.execute(
-                select(Article.source).distinct()
+                select(Article.source)
+                .where(Article.ignored != 1, Article.ai_title.isnot(None))
+                .distinct()
             ).scalars().all()
         )
         for src in source_names:
             src_articles = (
                 session.execute(
                     select(Article)
-                    .where(Article.source == src)
+                    .where(
+                        Article.source == src,
+                        Article.ignored != 1,
+                        Article.ai_title.isnot(None)
+                    )
                     .order_by(Article.fetched_at.desc())
                     .limit(10)
                 )
