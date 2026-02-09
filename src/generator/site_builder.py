@@ -3,7 +3,7 @@
 import json
 import logging
 import shutil
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import markdown
@@ -54,10 +54,12 @@ def build_site() -> None:
         stmt = select(Briefing).order_by(Briefing.date.desc())
         briefings = session.execute(stmt).scalars().all()
 
-        # Fetch latest articles for the index page — only important articles (passed judgment)
+        # Fetch latest articles for the index page — only recent important articles (passed judgment)
+        since = datetime.now(timezone.utc) - timedelta(hours=24)
         stmt = (
             select(Article)
             .where(
+                Article.fetched_at >= since,
                 Article.ignored != 1,
                 Article.ai_title.isnot(None)
             )
