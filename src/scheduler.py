@@ -18,6 +18,7 @@ from src.sources.leaderboard_source import LeaderboardCrawler
 from src.sources.hackernews_source import HackerNewsCrawler
 from src.sources.website_source import WebsiteCrawler
 from src.ai.summarizer import summarize_unsummarized
+from src.ai.judgment import process_articles
 from src.ai.briefing import generate_daily_briefing, generate_weekly_briefing
 from src.generator.markdown_gen import save_briefing_markdown
 from src.generator.site_builder import build_site
@@ -101,8 +102,22 @@ async def run_all_crawlers() -> None:
         else:
             logger.debug(f"[scheduler] Skipping disabled source: {name}")
 
-    # After crawling, run summarization
-    await run_summarization()
+    # NOTE: Summarization is now handled by the main pipeline (judgment first)
+    
+    # Run judgment on newly fetched articles
+    from src.database import Article, get_session
+    session = get_session()
+    try:
+        new_articles = session.query(Article).filter(
+            Article.ignored == 0,
+            Article.ai_title.is_(None)
+        ).order_by(Article.fetched_at.desc()).limit(30).all()
+        if new_articles:
+            import asyncio
+            asyncio.run(process_articles(new_articles))
+            session.commit()
+    finally:
+        session.close()
 
 
 def create_scheduler() -> AsyncIOScheduler:
