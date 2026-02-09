@@ -113,8 +113,7 @@ async def run_all_crawlers() -> None:
             Article.ai_title.is_(None)
         ).order_by(Article.fetched_at.desc()).limit(30).all()
         if new_articles:
-            import asyncio
-            asyncio.run(process_articles(new_articles))
+            await process_articles(new_articles)
             session.commit()
     finally:
         session.close()
