@@ -155,9 +155,9 @@ def push() -> None:
 
 @cli.command()
 def pipeline() -> None:
-    """Run the full pipeline: crawl -> judge -> summarize -> briefing -> build -> push."""
+    """Run the full pipeline: crawl -> judge+translate -> summarize -> briefing -> build -> push."""
     from src.scheduler import run_all_crawlers
-    from src.ai.judgment import filter_articles
+    from src.ai.judgment import process_articles
     from src.ai.summarizer import summarize_unsummarized
     from src.ai.briefing import generate_daily_briefing
     from src.generator.markdown_gen import save_briefing_markdown
@@ -168,34 +168,28 @@ def pipeline() -> None:
     logger = logging.getLogger(__name__)
 
     async def _pipeline():
-        logger.info("=== Step 1/5: Crawling ===")
+        logger.info("=== Step 1/4: Crawling ===")
         await run_all_crawlers()
 
-        logger.info("=== Step 2/5: Fast judgment by title ===")
+        logger.info("=== Step 2/4: Judgment + Translation (one pass) ===")
         session = get_session()
         try:
             unsummarized = session.query(Article).filter(
                 Article.summarized == 0
             ).order_by(Article.fetched_at.desc()).limit(30).all()
             if unsummarized:
-                selected = await filter_articles(unsummarized, max_high=10, max_medium=10)
-                selected_ids = {a.id for a in selected}
-                for a in unsummarized:
-                    if a.id not in selected_ids:
-                        a.ignored = 1
+                await process_articles(unsummarized)
                 session.commit()
         finally:
             session.close()
 
-        logger.info("=== Step 3/5: Summarizing ===")
-        await summarize_unsummarized(batch_size=15)
+        logger.info("=== Step 3/4: Summarizing ===")
+        await summarize_unsummarized(batch_size=10)
 
-        logger.info("=== Step 4/5: Generating briefing ===")
+        logger.info("=== Step 4/4: Building and pushing ===")
         result = await generate_daily_briefing()
         if result:
             save_briefing_markdown(result)
-
-        logger.info("=== Step 5/5: Building and pushing ===")
         build_site()
         push_to_remote()
 

@@ -1,23 +1,38 @@
-"""Fast batch importance judgment by title only."""
+"""Combined judgment + translation in one pass."""
 
 import json
 import logging
 
-from src.config import get_config
-
 logger = logging.getLogger(__name__)
 
+PROMPT = """你是AI资讯编辑。请处理以下今日资讯标题：
 
-async def batch_judge_titles(articles: list) -> list:
-    """Batch judge articles by title only (fast)."""
+{articles}
+
+任务：
+1. 判断每条是否重要（AI/LLM相关的研究、模型发布、行业动态）
+2. 翻译标题为中文（简洁准确）
+3. 输出JSON数组：
+
+[
+  {{"index": 0, "important": true, "title_zh": "中文标题", "summary": "一句话摘要（可选）"}},
+  ...
+]
+
+只输出JSON，不要其他内容。
+"""
+
+
+async def process_articles(articles: list) -> list:
+    """One-pass judgment + translation by title only."""
     from src.ai.llm_client import call_llm
 
     if not articles:
         return []
 
     # Build title list
-    titles = "\n".join([f'{i}. {a.title[:150]}' for i, a in enumerate(articles)])
-    prompt = "你是一位专业的AI研究员。请从以下标题中筛选出 **重要** 的AI/LLM相关资讯。\n\n标题列表：\n" + titles + "\n\n判断标准：\n- 重要：主要模型发布、研究突破、行业动态、实用教程、重要基准\n- 不重要：个人项目、Show HN、招聘、非AI内容、Meta讨论\n\n输出格式（JSON数组）：\n[{\"index\": 0, \"important\": true, \"reason\": \"原因\"}, ...]"
+    lines = "\n".join([f'{i}. [{a.source}] {a.title[:150]}' for i, a in enumerate(articles)])
+    prompt = PROMPT.format(articles=lines)
 
     try:
         response = await call_llm(
@@ -25,7 +40,7 @@ async def batch_judge_titles(articles: list) -> list:
             prompt=prompt,
         )
 
-        # Handle JSON wrapped in code blocks
+        # Handle code blocks
         text = response.strip()
         if text.startswith("```"):
             lines = text.split("\n")
@@ -41,50 +56,31 @@ async def batch_judge_titles(articles: list) -> list:
                     break
             text = "\n".join(lines[json_start:json_end])
 
-        # Parse JSON response
         results = json.loads(text)
-        return results
+        
+        # Apply results
+        selected = []
+        for r in results:
+            idx = r.get("index", 0)
+            if idx >= len(articles):
+                continue
+            article = articles[idx]
+            
+            if r.get("important", False):
+                # Update article with Chinese title
+                article.ai_title = r.get("title_zh", article.title)
+                selected.append(article)
+                logger.info(f"[✓] {article.title[:50]} → {article.ai_title[:30]}")
+            else:
+                article.ignored = 1
+                logger.info(f"[✗] {article.title[:50]} (not important)")
+
+        logger.info(f"Selected {len(selected)}/{len(articles)} articles")
+        return selected
 
     except Exception as e:
-        logger.warning(f"[judgment] Batch judgment failed: {e}")
-        # Default all to important on error
-        return [{"index": i, "important": True, "reason": "Error, default to include"} for i in range(len(articles))]
-
-
-async def filter_articles(articles: list, max_high: int = 10, max_medium: int = 10) -> list:
-    """Fast filter articles by title only."""
-    if not articles:
-        return []
-
-    logger.info(f"[judgment] Batch judging {len(articles)} articles by title...")
-
-    results = await batch_judge_titles(articles)
-
-    high_priority = []
-    medium_priority = []
-
-    for result in results:
-        idx = result.get("index", 0)
-        if idx >= len(articles):
-            continue
-
-        article = articles[idx]
-        if result.get("important", False):
-            priority = result.get("priority", "medium")
-            if priority == "high":
-                high_priority.append(article)
-            else:
-                medium_priority.append(article)
-        else:
-            article.ignored = True
-            logger.info(f"[judgment] ❌ {article.title[:50]}... | {result.get('reason', '')}")
-
-    # Sort by published_at if available
-    high_priority.sort(key=lambda x: x.published_at or x.fetched_at, reverse=True)
-    medium_priority.sort(key=lambda x: x.published_at or x.fetched_at, reverse=True)
-
-    # Cap results
-    selected = high_priority[:max_high] + medium_priority[:max_medium]
-    logger.info(f"[judgment] Selected {len(selected)}/{len(articles)} articles")
-
-    return selected
+        logger.warning(f"Processing failed: {e}")
+        # Return all on error
+        for a in articles:
+            a.ai_title = a.title
+        return articles
