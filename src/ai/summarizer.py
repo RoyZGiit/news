@@ -101,7 +101,7 @@ async def summarize_article(
 
 
 async def summarize_unsummarized(batch_size: int = 20) -> int:
-    """Find and summarize articles that don't have summaries yet.
+    """Find and summarize articles that don't have summaries yet (skip ignored).
 
     Returns the number of articles summarized.
     """
@@ -109,7 +109,10 @@ async def summarize_unsummarized(batch_size: int = 20) -> int:
     try:
         stmt = (
             select(Article)
-            .where(Article.summary.is_(None) | (Article.summary == ""))
+            .where(
+                (Article.summary.is_(None) | (Article.summary == ""))
+                & (Article.ignored != 1)  # Skip ignored articles
+            )
             .order_by(Article.fetched_at.desc())
             .limit(batch_size)
         )

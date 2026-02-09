@@ -84,13 +84,34 @@ def run() -> None:
 
 @cli.command()
 def crawl() -> None:
-    """Run all enabled crawlers once."""
+    """Run all enabled crawlers once (full crawl)."""
     from src.scheduler import run_all_crawlers
 
     logger = logging.getLogger(__name__)
-    logger.info("Running all crawlers...")
+    logger.info("Running all crawlers (full crawl)...")
     asyncio.run(run_all_crawlers())
     logger.info("Crawling complete.")
+
+
+@cli.command()
+def incremental() -> None:
+    """Fetch only NEW articles (skip existing by URL)."""
+    from src.scheduler import run_all_crawlers
+    from src.database import Article, get_session
+
+    logger = logging.getLogger(__name__)
+    logger.info("Running incremental crawl (new articles only)...")
+
+    session = get_session()
+    try:
+        # Get existing URLs to skip
+        existing = {a.url for a in session.query(Article.url).all()}
+        logger.info(f"Skipping {len(existing)} existing articles...")
+    finally:
+        session.close()
+
+    asyncio.run(run_all_crawlers())
+    logger.info("Incremental crawl complete.")
 
 
 @cli.command()
@@ -175,7 +196,7 @@ def pipeline() -> None:
         session = get_session()
         try:
             unsummarized = session.query(Article).filter(
-                Article.summarized == 0
+                (Article.summarized == 0) & (Article.ignored != 1)
             ).order_by(Article.fetched_at.desc()).limit(30).all()
             if unsummarized:
                 await process_articles(unsummarized)
@@ -196,6 +217,35 @@ def pipeline() -> None:
         logger.info("=== Pipeline complete ===")
 
     asyncio.run(_pipeline())
+
+
+@cli.command()
+def refresh() -> None:
+    """Quick refresh: re-run summarization + briefing + build (no crawling)."""
+    from src.ai.summarizer import summarize_unsummarized
+    from src.ai.briefing import generate_daily_briefing
+    from src.generator.markdown_gen import save_briefing_markdown
+    from src.generator.site_builder import build_site
+    from src.publisher.rsync_push import push_to_remote
+
+    logger = logging.getLogger(__name__)
+
+    async def _refresh():
+        logger.info("=== Step 1/3: Re-running summarization ===")
+        await summarize_unsummarized(batch_size=15)
+
+        logger.info("=== Step 2/3: Generating briefing ===")
+        result = await generate_daily_briefing()
+        if result:
+            save_briefing_markdown(result)
+
+        logger.info("=== Step 3/3: Building and pushing ===")
+        build_site()
+        push_to_remote()
+
+        logger.info("=== Refresh complete ===")
+
+    asyncio.run(_refresh())
 
 
 @cli.command()

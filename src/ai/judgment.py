@@ -72,7 +72,9 @@ async def process_articles(articles: list) -> list:
                 selected.append(article)
                 logger.info(f"[✓] {article.title[:50]} → {article.ai_title[:30]}")
             else:
+                # Mark as ignored and summarized (skip further processing)
                 article.ignored = 1
+                article.summarized = 1
                 logger.info(f"[✗] {article.title[:50]} (not important)")
 
         logger.info(f"Selected {len(selected)}/{len(articles)} articles")

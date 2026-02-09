@@ -103,7 +103,7 @@ publish:
   remote_host: "167.99.31.52"
   remote_user: "root"
   remote_path: "/var/www/news.topolapse.com/"
-  ssh_key: "~/.ssh/id_rsa"
+  ssh_key: "~/.ssh/id_ed25519"
   site_title: "AI Daily Briefing"
   site_description: "AI 行业每日信息聚合简报"
   site_url: "https://news.topolapse.com"
