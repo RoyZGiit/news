@@ -13,14 +13,13 @@ sources:
       - "meta-llama"
       - "deepseek-ai"
       - "mistralai"
-      - "huggingface"
     topics:
       - "large-language-model"
       - "generative-ai"
       - "llm"
 
   huggingface:
-    enabled: true
+    enabled: false
     interval_hours: 6
 
   reddit:
