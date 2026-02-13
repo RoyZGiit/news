@@ -3,8 +3,53 @@ scheduler:
   weekly_briefing_day: "monday"
 
 sources:
-  github:
+  twitter:
     enabled: true
+    interval_hours: 4
+    method: "rsshub"
+    rsshub_base: "https://rsshub.app"
+    # AI-related accounts to crawl
+    accounts:
+      - "OpenAI"
+      - "AnthropicAI"
+      - "GoogleDeepMind"
+      - "MetaAI"
+      - "ylecun"
+      - "AndrewYNg"
+      - "JeffDean"
+      - "sama"
+      - "demishassabis"
+      - "AndrewNGTranding"
+    # AI-related hashtags to crawl
+    hashtags:
+      - "AI"
+      - "LLM"
+      - "GPT"
+      - "MachineLearning"
+      - "DeepLearning"
+      - "ArtificialIntelligence"
+      - "OpenAI"
+      - "Anthropic"
+      - "AGI"
+
+  reddit:
+    enabled: true
+    method: "rss"
+    # AI-related subreddits
+    subreddits:
+      - "MachineLearning"
+      - "LocalLLaMA"
+      - "artificial"
+      - "singularity"
+      - "LocalLLaMA"
+      - "ArtificialInteligence"
+      - "llm"
+      - "agi"
+    post_limit: 25
+
+  # Disabled sources - X and Reddit only
+  github:
+    enabled: false
     interval_hours: 6
     orgs:
       - "openai"
@@ -22,30 +67,8 @@ sources:
     enabled: false
     interval_hours: 6
 
-  reddit:
-    enabled: false  # Disabled: too noisy, low quality
-    method: "rss"
-    subreddits:
-      - "MachineLearning"
-      - "LocalLLaMA"
-      - "artificial"
-      - "singularity"
-    post_limit: 25
-
-  twitter:
-    enabled: false
-    interval_hours: 4
-    method: "rsshub"
-    rsshub_base: "https://rsshub.app"
-    accounts:
-      - "OpenAI"
-      - "AnthropicAI"
-      - "GoogleDeepMind"
-      - "MetaAI"
-      - "deepaboroshke"
-
   arxiv:
-    enabled: false  # Disabled: too academic, not suitable for daily news
+    enabled: false
     interval_hours: 12
     categories:
       - "cs.AI"
@@ -63,58 +86,18 @@ sources:
       - "agent"
 
   leaderboard:
-    enabled: true
+    enabled: false
     interval_hours: 24
 
   hackernews:
-    enabled: true
+    enabled: false
     interval_hours: 4
     post_limit: 20
 
   websites:
-    enabled: true
+    enabled: false
     interval_hours: 6
-    blogs:
-      # Official AI Labs
-      - name: "OpenAI Blog"
-        url: "https://openai.com/blog"
-        rss: "https://openai.com/blog/rss.xml"
-      - name: "Anthropic News"
-        url: "https://www.anthropic.com/news"
-      - name: "Google AI Blog"
-        url: "https://blog.google/technology/ai/"
-        rss: "https://blog.google/technology/ai/rss/"
-      - name: "Meta AI Blog"
-        url: "https://ai.meta.com/blog/"
-      - name: "DeepSeek"
-        url: "https://www.deepseek.com/"
-      - name: "Mistral AI"
-        url: "https://mistral.ai/news/"
-      # Tech Media
-      - name: "TechCrunch AI"
-        url: "https://techcrunch.com/category/artificial-intelligence/"
-        rss: "https://techcrunch.com/category/artificial-intelligence/feed/"
-      - name: "The Verge AI"
-        url: "https://www.theverge.com/ai-artificial-intelligence"
-      - name: "Wired AI"
-        url: "https://www.wired.com/tag/artificial-intelligence/"
-      - name: "VentureBeat AI"
-        url: "https://venturebeat.com/category/ai/"
-        rss: "https://venturebeat.com/category/ai/feed/"
-      # AI Newsletters/Sites
-      - name: "MIT Technology Review AI"
-        url: "https://www.technologyreview.com/topic/artificial-intelligence"
-      - name: "Simon Willison"
-        url: "https://simonwillison.net/"
-      # AI Daily/Newsletters
-      - name: "Latent.Space"
-        url: "https://www.latent.space/"
-        rss: "https://www.latent.space/feed"
-      - name: "The Batch (DeepLearning.AI)"
-        url: "https://www.deeplearning.ai/the-batch/"
-      - name: "Import AI (Jack Clark)"
-        url: "https://jack-clark.net/"
-        rss: "https://jack-clark.net/feed"
+    blogs: []
 
 llm:
   provider: "openai"
