@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topolapse Research - 深度技术调研</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #f5f5f5;
+            color: #333;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        .header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .header p { opacity: 0.9; }
+        .articles-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        .article-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .article-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .article-card h2 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+        .article-card .meta {
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+        }
+        .article-card .description {
+            color: #555;
+            line-height: 1.5;
+        }
+        .article-card .tags {
+            margin-top: 1rem;
+        }
+        .tag {
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: #666;
+            margin-right: 0.5rem;
+        }
+        .footer {
+            margin-top: 3rem;
+            padding: 1rem;
+            text-align: center;
+            color: #888;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 Topolapse Research</h1>
+        <p>深度技术调研 | AI/Agent/记忆系统</p>
+    </div>
+    
+    <div class="articles-grid">
+        <a href="agenthub.html" class="article-card">
+            <h2>🤖 AgentHub 调研 - Karpathy 的 Agent 协作平台</h2>
+            <div class="meta">📅 2026-03-11 | 👤 Andrej Karpathy</div>
+            <p class="description">深入分析 Andrej Karpathy 的实验性项目：无主分支、无 PR、无 Merge 的 Agent 协作平台。基于 DAG 结构的 Commit 历史 + Message Board 协调机制。</p>
+            <div class="tags">
+                <span class="tag">AgentHub</span>
+                <span class="tag">Karpathy</span>
+                <span class="tag">Multi-Agent</span>
+            </div>
+        </a>
+        
+        <a href="claude-memory.html" class="article-card">
+            <h2>🧠 Claude 记忆系统深度解析</h2>
+            <div class="meta">📅 2026-03-02 | 👤 Anthropic</div>
+            <p class="description">深入分析 Claude 的双层记忆系统：CLAUDE.md 主动记忆与 Auto Memory 自动学习。探索其文件层级架构、与 RAG 的本质区别、以及企业级安全设计。</p>
+            <div class="tags">
+                <span class="tag">Claude Code</span>
+                <span class="tag">Memory</span>
+                <span class="tag">Agent</span>
+            </div>
+        </a>
+        
+        <a href="letta-architecture.html" class="article-card">
+            <h2>🏗️ Letta 技术架构深度调研</h2>
+            <div class="meta">📅 2026-03-01 | 👤 Letta AI</div>
+            <p class="description">基于源码分析的完整技术报告。深入了解 Letta 的有状态 Agent 平台架构、Context Repositories Git 备份记忆、以及 Memory Blocks 核心设计。</p>
+            <div class="tags">
+                <span class="tag">Letta</span>
+                <span class="tag">MemGPT</span>
+                <span class="tag">Architecture</span>
+            </div>
+        </a>
+    </div>
+    
+    <div class="footer">
+        <p>📅 Topolapse Research | 更多调研持续更新中</p>
+    </div>
+</body>
+</html>
