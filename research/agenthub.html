@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgentHub 调研 - Karpathy 的 Agent 协作平台</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.7;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #fafafa;
+            color: #333;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            color: #667eea;
+            text-decoration: none;
+        }
+        .back-link:hover { text-decoration: underline; }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: #222;
+        }
+        .meta {
+            color: #888;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        h2 {
+            color: #667eea;
+            margin: 2rem 0 1rem;
+            font-size: 1.4rem;
+        }
+        h3 { color: #444; margin: 1.5rem 0 0.5rem; }
+        p { margin-bottom: 1rem; }
+        ul, ol { margin: 1rem 0 1rem 1.5rem; }
+        li { margin-bottom: 0.5rem; }
+        code {
+            background: #f4f4f4;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        pre code {
+            background: none;
+            padding: 0;
+        }
+        blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: #666;
+            font-style: italic;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        th, td {
+            padding: 0.75rem;
+            border: 1px solid #eee;
+            text-align: left;
+        }
+        th { background: #f4f4f4; }
+        hr {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 2rem 0;
+        }
+        .footer {
+            margin-top: 3rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+            color: #888;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-link">← Back to Research</a>
+    
+    <h1>AgentHub 调研报告</h1>
+    <p class="meta">By Chen | 2026-03-11</p>
+
+    <h2>什么是 AgentHub</h2>
+    <p><strong>AgentHub</strong> 是 Andrej Karpathy 开发的一个实验性项目，旨在为 AI Agent 提供一个协作平台。</p>
+    <blockquote>
+        <p>GitHub is for humans. AgentHub is for agents.</p>
+    </blockquote>
+
+    <h2>核心理念</h2>
+    <ul>
+        <li><strong>无主分支、无 PR、无 Merge</strong>：没有传统代码仓库的分支合并概念</li>
+        <li><strong>DAG 结构的 Commit 历史</strong>：每个 Agent 独立提交，形成有向无环图</li>
+        <li><strong>Message Board 协作</strong>：Agent 之间通过频道帖子协调，而非代码合并</li>
+        <li><strong>通用平台</strong>：不关心 Agent 优化什么，"文化"来自 Agent 的指令而非平台</li>
+    </ul>
+
+    <h2>架构</h2>
+
+    <h3>技术栈</h3>
+    <ul>
+        <li>语言：Go</li>
+        <li>代码量：~2200 行</li>
+        <li>依赖：单一 Go 二进制 + SQLite + Git</li>
+    </ul>
+
+    <h3>核心组件</h3>
+    <pre><code>cmd/
+  agenthub-server/main.go    # 服务器
+  ah/main.go                 # CLI 客户端
+
+internal/
+  db/db.go                   # SQLite 数据库
+  gitrepo/repo.go            # Git 操作
+  server/                    # API handlers</code></pre>
+
+    <h3>数据存储</h3>
+    <ul>
+        <li><strong>Bare Git Repo</strong>：纯 Git 对象存储，无工作目录</li>
+        <li>每个 commit 是完整快照（Git 自动去重）</li>
+        <li>使用 <code>git bundle</code> 传输</li>
+    </ul>
+
+    <h3>API 接口</h3>
+
+    <h4>Git 操作</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>Method</th>
+                <th>Path</th>
+                <th>描述</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>POST</td>
+                <td><code>/api/git/push</code></td>
+                <td>上传 bundle</td>
+            </tr>
+            <tr>
+                <td>GET</td>
+                <td><code>/api/git/fetch/{hash}</code></td>
+                <td>下载 commit</td>
+            </tr>
+            <tr>
+                <td>GET</td>
+                <td><code>/api/git/commits</code></td>
+                <td>列出 commits</td>
+            </tr>
+            <tr>
+                <td>GET</td>
+                <td><code>/api/git/children/{hash}</code></td>
+                <td>子 commit</td>
+            </tr>
+            <tr>
+                <td>GET</td>
+                <td><code>/api/git/leaves</code></td>
+                <td>前沿 commit（无子节点）</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h4>Message Board</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>Method</th>
+                <th>Path</th>
+                <th>描述</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>GET/POST</td>
+                <td><code>/api/channels</code></td>
+                <td>频道</td>
+            </tr>
+            <tr>
+                <td>GET/POST</td>
+                <td><code>/api/channels/{name}/posts</code></td>
+                <td>帖子</td>
+            </tr>
+            <tr>
+                <td>GET</td>
+                <td><code>/api/posts/{id}/replies</code></td>
+                <td>回复</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>关键概念</h2>
+
+    <h3>Bare Repository</h3>
+    <p>没有工作目录的 Git 仓库，只能存储对象，不能 checkout 文件。</p>
+
+    <h3>Commit DAG</h3>
+    <p>有向无环图。每个 commit 只有父 commit，没有 merge。</p>
+    <pre><code>A---B---C---D---E---F
+           |
+           G---H---I</code></pre>
+
+    <h3>Git Bundle</h3>
+    <p>将 Git 对象打包成文件，便于传输。AgentHub 用它来 push/fetch。</p>
+
+    <h2>使用方式</h2>
+    <pre><code># 启动服务器
+./agenthub-server --admin-key SECRET --data ./data
+
+# CLI 操作
+ah push                    # 推送当前 commit
+ah fetch &lt;hash&gt;            # 获取某个 commit
+ah children &lt;hash&gt;         # 查看基于此 commit 的尝试
+ah leaves                  # 前沿 commit
+ah post &lt;channel&gt; &lt;msg&gt;   # 发帖</code></pre>
+
+    <h2>与传统代码仓库的区别</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>特性</th>
+                <th>GitHub</th>
+                <th>AgentHub</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>分支</td>
+                <td>有</td>
+                <td>无</td>
+            </tr>
+            <tr>
+                <td>PR/Merge</td>
+                <td>有</td>
+                <td>无</td>
+            </tr>
+            <tr>
+                <td>目标</td>
+                <td>人类协作</td>
+                <td>Agent 协作</td>
+            </tr>
+            <tr>
+                <td>存储</td>
+                <td>工作目录 + .git</td>
+                <td>纯 bare repo</td>
+            </tr>
+            <tr>
+                <td>协调方式</td>
+                <td>Code Review</td>
+                <td>Message Board</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>项目地址</h2>
+    <ul>
+        <li>GitHub: <a href="https://github.com/karpathy/agenthub">https://github.com/karpathy/agenthub</a></li>
+        <li>本地克隆: <code>workspace/agenthub/</code></li>
+    </ul>
+
+    <h2>思考</h2>
+    <p>AgentHub 的设计理念很适合多 Agent 独立探索的场景：</p>
+    <ul>
+        <li>没有合并冲突</li>
+        <li>每个实验独立记录</li>
+        <li>通过 message board 而非代码协作</li>
+    </ul>
+    <p>适合的场景：</p>
+    <ul>
+        <li>自动研究（Karpathy 的第一个用例）</li>
+        <li>多 Agent 平行实验</li>
+        <li>分布式 Agent 社区</li>
+    </ul>
+
+    <hr>
+    <p class="footer">*待续...*</p>
+</body>
+</html>
