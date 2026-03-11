@@ -1,0 +1,118 @@
+scheduler:
+  daily_briefing_time: "08:00"
+  weekly_briefing_day: "monday"
+
+sources:
+  twitter:
+    enabled: false  # Disabled - using browser to manually follow/read
+    interval_hours: 4
+    method: "nitter"
+    nitter_base: "https://xcancel.com"
+    # AI-related accounts to crawl
+    accounts:
+      - "OpenAI"
+      - "AnthropicAI"
+      - "GoogleDeepMind"
+      - "MetaAI"
+      - "ylecun"
+      - "AndrewYNg"
+      - "JeffDean"
+      - "sama"
+      - "demishassabis"
+      - "AndrewNGTranding"
+    # AI-related hashtags to crawl
+    hashtags:
+      - "AI"
+      - "LLM"
+      - "GPT"
+      - "MachineLearning"
+      - "DeepLearning"
+      - "ArtificialIntelligence"
+      - "OpenAI"
+      - "Anthropic"
+      - "AGI"
+
+  reddit:
+    enabled: false  # Disabled - using browser to manually browse and generate briefs
+    # AI-related subreddits
+    subreddits:
+      - "MachineLearning"
+      - "LocalLLaMA"
+      - "artificial"
+      - "singularity"
+      - "LocalLLaMA"
+      - "ArtificialInteligence"
+      - "llm"
+      - "agi"
+    post_limit: 25
+
+  # Disabled sources - X and Reddit only
+  github:
+    enabled: false
+    interval_hours: 6
+    orgs:
+      - "openai"
+      - "anthropics"
+      - "google-deepmind"
+      - "meta-llama"
+      - "deepseek-ai"
+      - "mistralai"
+    topics:
+      - "large-language-model"
+      - "generative-ai"
+      - "llm"
+
+  huggingface:
+    enabled: false
+    interval_hours: 6
+
+  arxiv:
+    enabled: false
+    interval_hours: 12
+    categories:
+      - "cs.AI"
+      - "cs.CL"
+      - "cs.LG"
+    max_results: 30
+    keywords:
+      - "large language model"
+      - "LLM"
+      - "GPT"
+      - "transformer"
+      - "diffusion"
+      - "multimodal"
+      - "reasoning"
+      - "agent"
+
+  leaderboard:
+    enabled: false
+    interval_hours: 24
+
+  hackernews:
+    enabled: false
+    interval_hours: 4
+    post_limit: 20
+
+  websites:
+    enabled: false
+    interval_hours: 6
+    blogs: []
+
+llm:
+  provider: "openai"
+  model: "gpt-4o-mini"
+  api_base: null
+  temperature: 0.3
+  max_tokens: 4096
+  summarize_model: "gpt-4o-mini"
+  briefing_model: "gpt-4o-mini"
+
+publish:
+  method: "rsync"
+  remote_host: "167.99.31.52"
+  remote_user: "root"
+  remote_path: "/var/www/news.topolapse.com/"
+  ssh_key: "~/.ssh/id_ed25519"
+  site_title: "AI Daily Briefing"
+  site_description: "AI 行业每日信息聚合简报"
+  site_url: "https://news.topolapse.com"

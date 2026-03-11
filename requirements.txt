@@ -1,0 +1,39 @@
+# Web & HTTP
+httpx[http2]>=0.27
+beautifulsoup4>=4.12
+feedparser>=6.0
+jinja2>=3.1
+
+# Database
+sqlalchemy>=2.0
+aiosqlite>=0.20
+
+# Scheduling
+apscheduler>=3.10
+
+# AI / LLM
+litellm>=1.40
+
+# Reddit
+praw>=7.7
+
+# HuggingFace
+huggingface-hub>=0.24
+
+# Arxiv
+arxiv>=2.1
+
+# Config
+pyyaml>=6.0
+pydantic>=2.7
+pydantic-settings>=2.3
+python-dotenv>=1.0
+
+# Logging
+rich>=13.7
+
+# Markdown rendering
+markdown>=3.6
+
+# CLI
+click>=8.1

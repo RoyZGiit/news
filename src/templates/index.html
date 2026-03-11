@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}{{ site_title }} - 首页{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="mb-8">
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">AI Daily Briefing</h1>
+    <p class="text-gray-400 text-sm" data-i18n="index.updated" data-i18n-time="{{ generated_at }}" data-i18n-count="{{ latest_articles|length }}">{{ generated_at }} 更新 · {{ latest_articles|length }} 条资讯</p>
+</div>
+
+<!-- Briefings -->
+{% if latest_briefing %}
+<div class="mb-8">
+    <a href="briefing-{{ latest_briefing.period }}-{{ latest_briefing.date }}.html"
+       class="block bg-gradient-to-r from-primary-600 to-indigo-600 rounded-xl p-5 text-white hover:from-primary-700 hover:to-indigo-700 transition-colors">
+        <div class="flex items-center justify-between">
+            <div>
+                <span class="text-xs font-medium opacity-80" data-i18n="{{ 'index.weekly' if latest_briefing.period == 'weekly' else 'index.daily' }}">{{ '周报' if latest_briefing.period == 'weekly' else '日报' }}</span>
+                <h2 class="text-lg font-semibold mt-1">{{ latest_briefing.title }}</h2>
+            </div>
+            <span class="text-white/60">→</span>
+        </div>
+    </a>
+</div>
+{% endif %}
+
+<!-- Article List -->
+{% if latest_articles %}
+<div class="space-y-4 max-w-3xl">
+    {% for article in latest_articles %}
+    {% set display_text = article.summary or article.content %}
+    {% set display_title = article.ai_title if article.ai_title else article.title %}
+    <article class="bg-white rounded-lg border border-gray-200 p-5 hover:border-gray-300 transition-colors">
+        <div class="flex items-start gap-4">
+            <!-- Source Badge -->
+            <span class="text-xs font-medium px-2 py-1 rounded bg-gray-100 text-gray-600 whitespace-nowrap">
+                {{ article.source }}
+            </span>
+            
+            <div class="flex-1 min-w-0">
+                <!-- Title -->
+                <h3 class="text-base font-medium text-gray-900 mb-2 leading-snug"
+                    data-lang-zh="{{ display_title }}"
+                    data-lang-en="{{ article.ai_title_en or display_title }}">
+                    <a href="{{ article.url }}" target="_blank" rel="noopener">{{ display_title }}</a>
+                </h3>
+                
+                <!-- Summary -->
+                {% if display_text %}
+                <p class="text-sm text-gray-500 leading-relaxed line-clamp-2 mb-2"
+                   data-lang-zh="{{ display_text[:200] }}"
+                   data-lang-en="{{ (article.summary_en or display_text)[:200] }}">
+                    {{ display_text[:200] }}
+                </p>
+                {% endif %}
+                
+                <!-- Meta -->
+                <div class="flex items-center gap-3 text-xs text-gray-400">
+                    {% if article.fetched_at %}
+                    <span>{{ article.fetched_at.strftime('%Y-%m-%d') }}</span>
+                    {% endif %}
+                    {% if article.importance_score and article.importance_score >= 4 %}
+                    <span class="text-red-500 font-medium">HOT</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </article>
+    {% endfor %}
+</div>
+{% elif not latest_briefing %}
+<div class="bg-white rounded-lg border border-gray-200 p-10 text-center">
+    <p class="text-gray-400">暂无数据。系统正在收集信息，请稍后查看。</p>
+</div>
+{% endif %}
+
+<!-- Archive Link -->
+<div class="mt-8">
+    <a href="archive.html" class="text-sm text-gray-500 hover:text-gray-700">
+        查看归档 →
+    </a>
+</div>
+{% endblock %}
